@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Geometria Analítica</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.1/lib/browser/math.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+  :root { --acc:#5784b4; --acc2:#5784b4; --panel:#1c222b; --line:#2b3340; --txt:#dde2ea; --muted:#8a93a2; --field:#11151c; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; overflow:hidden; color:var(--txt); font-family:'Inter',system-ui,'Segoe UI',Roboto,sans-serif; background:#15191f; }
+  #app { position:fixed; inset:0; } canvas { display:block; }
+  .glass { background:var(--panel); border:1px solid var(--line); }
+  #bar { position:absolute; top:14px; left:14px; z-index:10; display:flex; align-items:center; gap:10px; border-radius:14px; padding:9px 14px; font-size:13px; }
+  #bar a { color:var(--acc); text-decoration:none; font-weight:600; } #bar .sep{ width:1px;height:16px;background:var(--line);} #bar .title{font-weight:700;}
+  .panel { position:absolute; top:64px; width:300px; max-height:calc(100% - 80px); overflow-y:auto; border-radius:16px; padding:14px 16px; font-size:13px; z-index:10; }
+  #left { left:14px; } #right { right:14px; }
+  h1 { font-size:15px; margin:2px 0 10px; } h2 { font-size:11px; color:var(--muted); margin:14px 0 8px; text-transform:uppercase; letter-spacing:.7px; }
+  .panel::-webkit-scrollbar{width:8px;} .panel::-webkit-scrollbar-thumb{background:#333d4c;border-radius:8px;}
+  label.row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:8px 0 2px; color:var(--muted); }
+  select.numin, input.numin { width:160px; background:var(--field); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:7px 9px; }
+  .pgrid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin:8px 0; }
+  .pgrid label { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted); }
+  .pgrid input { width:100%; background:var(--field); color:var(--txt); border:1px solid var(--line); border-radius:7px; padding:6px; font-family:ui-monospace,Consolas,monospace; }
+  .eqin { width:100%; background:var(--field); color:var(--txt); border:1px solid var(--line); border-radius:9px; padding:9px; font-family:ui-monospace,Consolas,monospace; margin:6px 0; }
+  select.numin option, option { background:#11151c; color:#dde2ea; }
+  #popBody.tplx { position:relative; white-space:nowrap; overflow-x:auto; overflow-y:hidden; padding:10px 4px 6px; color:#dde2ea; min-height:42px; }
+  #popBody.tplx .katex { font-size:1.25em; }
+  .kbin { position:absolute; background:#11151c; color:#fff; border:1px solid var(--acc); border-radius:5px; text-align:center; font:600 13px ui-monospace,Consolas,monospace; padding:0; box-sizing:border-box; -moz-appearance:textfield; }
+  .kbin::-webkit-inner-spin-button, .kbin::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+  button.act { background:#3c6291; color:#ffffff; border:0; border-radius:10px; padding:10px 12px; font-weight:700; cursor:pointer; width:100%; margin-top:8px; }
+  button.act:hover{ background:#4774a8; }
+  .toggle { display:flex; align-items:center; gap:8px; background:#262e3a; border:1px solid #333d4c; border-radius:10px; padding:9px 10px; margin:8px 0; color:#dde2ea; cursor:pointer; }
+  .toggle.on { background:#3c6291; color:#ffffff; border-color:#5784b4; }
+  .list { display:flex; flex-direction:column; gap:6px; max-height:170px; overflow-y:auto; }
+  .list:empty::after { content:'Nenhum elemento.'; color:var(--muted); font-size:12px; }
+  .item { display:flex; align-items:center; gap:9px; background:#262e3a; border:1px solid var(--line); border-radius:10px; padding:7px 10px; cursor:pointer; }
+  .item:hover{ background:#2f3947; } .item.sel{ border-color:#5784b4; background:#223047; }
+  .item .dot{ width:12px;height:12px;border-radius:50%;flex:0 0 auto; } .item .nm{ font-weight:600; } .item .x{ margin-left:auto;background:none;border:0;color:#e58a8a;cursor:pointer; }
+  .box { background:#11151c; border:1px solid #2b3340; border-radius:9px; padding:9px; margin-top:8px; font-size:12.5px; line-height:1.7; }
+  .box .kf { margin:4px 0; } .muted{ color:var(--muted); }
+  .katex{ font-size:1em; }
+  .keys { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0; }
+  .keys button { background:#262e3a; border:1px solid #333d4c; color:#dde2ea; border-radius:8px; padding:6px 11px; cursor:pointer; font-size:13px; font-family:ui-monospace,Consolas,monospace; }
+  .keys button:hover{ background:#2f3947; }
+  .prev { min-height:20px; margin:6px 0; color:#dde2ea; font-size:15px; overflow-x:auto; } .prev:empty{ display:none; }
+  .palette { display:grid; grid-template-columns:repeat(2,1fr); gap:7px; margin:8px 0; }
+  .chip { background:#262e3a; border:1px solid var(--line); border-radius:10px; padding:9px 8px; cursor:grab; text-align:center; font-size:12px; user-select:none; }
+  .chip:hover{ background:#223047; border-color:#5784b4; } .chip:active{ cursor:grabbing; }
+  #popup { position:absolute; z-index:30; width:auto; max-width:min(96vw,560px); padding:11px 13px; border-radius:13px; font-size:12px; display:none; }
+  #popup .pop-h { display:flex; justify-content:space-between; align-items:center; font-weight:700; color:#dde2ea; margin-bottom:8px; }
+  #popup .pop-h button { background:none; border:0; color:#e58a8a; cursor:pointer; font-size:13px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="bar" class="glass"><a href="index.html">← Início</a><span class="sep"></span><span class="title">Geometria Analítica</span></div>
+
+<div id="left" class="panel glass">
+  <h1>Inserir elemento</h1>
+  <h2>Equação livre</h2>
+  <input id="eqfree" class="eqin" placeholder="ex.:  x^2/9 + y^2/4 = 1   ·   x^2+y^2+z^2 = 9">
+  <div id="eqkeys" class="keys">
+    <button data-k="frac" title="fração">a/b</button>
+    <button data-k="exp" title="expoente">xⁿ</button>
+    <button data-k="sqrt" title="raiz">√</button>
+    <button data-k="pi">π</button>
+    <button data-k="eq">=</button>
+  </div>
+  <div id="eqPrev" class="prev"></div>
+  <button class="act" id="addEq">Adicionar equação</button>
+
+  <h2>Arraste um elemento para o plano</h2>
+  <div id="palette" class="palette"></div>
+  <p class="muted" style="font-size:11px; margin:4px 0 0">Solte no plano → um pop-up abre sobre o objeto para preencher os parâmetros (ou a fórmula).</p>
+</div>
+
+<div id="right" class="panel glass">
+  <h1>Elementos</h1>
+  <div id="lista" class="list"></div>
+  <h2>Propriedades</h2>
+  <div id="props" class="box"><span class="muted">Selecione um elemento.</span></div>
+  <h2>Interações</h2>
+  <label class="row">Comparar com <select id="elemB" class="numin"></select></label>
+  <div id="inter" class="box"><span class="muted">Escolha dois elementos para ver distâncias/ângulos.</span></div>
+  <label class="row" id="mistoRow" style="display:none">3º vetor (produto misto) <select id="elemC" class="numin" style="width:120px"></select></label>
+</div>
+
+<div id="popup" class="glass">
+  <div class="pop-h"><span id="popTitle">Elemento</span><button id="popX">✕</button></div>
+  <div id="popBody" class="pgrid"></div>
+  <input id="popEq" class="eqin" placeholder="ou: equação F=0 (opcional)">
+  <button class="act" id="popOK" style="margin-top:6px">OK</button>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+const $ = id => document.getElementById(id);
+const V = (x,y,z)=>new THREE.Vector3(x,y,z);
+
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(innerWidth,innerHeight); $('app').appendChild(renderer.domElement);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0c1018);
+scene.add(new THREE.HemisphereLight(0xbcd0ff,0x141a2a,0.65)); scene.add(new THREE.AmbientLight(0xffffff,0.3));
+const dl=new THREE.DirectionalLight(0xffffff,0.85); dl.position.set(6,12,8); scene.add(dl);
+const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,0.1,8000); camera.up.set(0,0,1); camera.position.set(16,-18,12);
+const controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.target.set(0,0,1);
+
+function label(text,color='#fff'){ const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle=color;x.font='bold 80px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(text,64,64);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.scale.set(0.8,0.8,0.8);return s; }
+function axis(dir,color,name){ const g=new THREE.Group();const d=dir.clone().normalize();g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-1000),d.clone().multiplyScalar(1000)]),new THREE.LineBasicMaterial({color})));const l=label(name,'#'+color.toString(16).padStart(6,'0'));l.position.copy(d.clone().multiplyScalar(6));g.add(l);return g; }
+scene.add(axis(V(1,0,0),0xf87171,'X')); scene.add(axis(V(0,1,0),0x34d399,'Y')); scene.add(axis(V(0,0,1),0x60a5fa,'Z'));
+// grade
+const gv=`varying vec2 vC;varying vec3 vW;void main(){vC=position.xy;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`;
+const gf=`precision highp float;varying vec2 vC;varying vec3 vW;uniform vec3 uCam;uniform float uF;uniform vec3 uMi;uniform vec3 uMa;
+ float gr(vec2 c,float s){vec2 a=c/s;vec2 g=abs(fract(a-.5)-.5)/fwidth(a);return 1.-min(min(g.x,g.y),1.);}
+ void main(){float mi=gr(vC,1.);float ma=gr(vC,10.);float d=distance(vW,uCam);float f=1.-smoothstep(uF*.35,uF,d);vec3 col=mix(uMi,uMa,ma);float a=max(max(mi*.9,ma),.07)*f;if(a<.004)discard;gl_FragColor=vec4(col,a);}`;
+const gridMat=new THREE.ShaderMaterial({uniforms:{uCam:{value:new THREE.Vector3()},uF:{value:120},uMi:{value:new THREE.Color(0x6a80a8)},uMa:{value:new THREE.Color(0xa8c8f5)}},vertexShader:gv,fragmentShader:gf,transparent:true,depthWrite:false,side:THREE.DoubleSide,extensions:{derivatives:true}});
+const gridMesh=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),gridMat); gridMesh.renderOrder=-1; scene.add(gridMesh); // Z para cima: grade no plano XY (z=0)
+
+// ---- marching (cônicas 2D / quádricas 3D) ----
+function marchSquares(F,R,N){ const co=i=>-R+2*R*i/N,S=N+1,g=new Float64Array(S*S),id=(i,j)=>i+S*j;
+ for(let j=0;j<S;j++)for(let i=0;i<S;i++){const v=F(co(i),co(j));g[id(i,j)]=isFinite(v)?v:NaN;}
+ const seg=[],E=[[0,1],[1,2],[2,3],[3,0]],C=[[0,0],[1,0],[1,1],[0,1]];
+ for(let j=0;j<N;j++)for(let i=0;i<N;i++){const ci=[[i,j],[i+1,j],[i+1,j+1],[i,j+1]],v=ci.map(([a,b])=>g[id(a,b)]),p=[];
+  for(const[a,b]of E){const va=v[a],vb=v[b];if(isFinite(va)&&isFinite(vb)&&(va<0)!==(vb<0)){const t=va/(va-vb),pa=[co(ci[a][0]),co(ci[a][1])],pb=[co(ci[b][0]),co(ci[b][1])];p.push([pa[0]+t*(pb[0]-pa[0]),pa[1]+t*(pb[1]-pa[1])]);}}
+  if(p.length===2)seg.push(p[0],p[1]);else if(p.length===4){seg.push(p[0],p[1]);seg.push(p[2],p[3]);}}
+ return seg; }
+function sub(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]];} function crs(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];} function dt(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];} function nz(a){const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l];}
+function orderQuad(p){const c=[(p[0][0]+p[1][0]+p[2][0]+p[3][0])/4,(p[0][1]+p[1][1]+p[2][1]+p[3][1])/4,(p[0][2]+p[1][2]+p[2][2]+p[3][2])/4];const n=nz(crs(sub(p[1],p[0]),sub(p[2],p[0])));const ax=nz(sub(p[0],c)),ay=crs(n,ax);const an=p.map(q=>{const d=sub(q,c);return Math.atan2(dt(d,ay),dt(d,ax));});return[0,1,2,3].sort((A,B)=>an[A]-an[B]).map(i=>p[i]);}
+function marchTet(F,R,N){ const co=i=>-R+2*R*i/N,S=N+1,fl=new Float32Array(S*S*S),id=(i,j,k)=>i+S*(j+S*k);
+ for(let k=0;k<S;k++)for(let j=0;j<S;j++)for(let i=0;i<S;i++){const v=F(co(i),co(j),co(k));fl[id(i,j,k)]=isFinite(v)?v:NaN;}
+ const out=[],cc=[[0,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]],ts=[[0,5,1,6],[0,1,2,6],[0,2,3,6],[0,3,7,6],[0,7,4,6],[0,4,5,6]],te=[[0,1],[1,2],[2,0],[0,3],[1,3],[2,3]];
+ for(let k=0;k<N;k++)for(let j=0;j<N;j++)for(let i=0;i<N;i++){const cp=[],cv=[];for(let c=0;c<8;c++){const o=cc[c],ci=i+o[0],cj=j+o[1],ck=k+o[2];cp.push([co(ci),co(cj),co(ck)]);cv.push(fl[id(ci,cj,ck)]);}
+  for(const t of ts){const p=[cp[t[0]],cp[t[1]],cp[t[2]],cp[t[3]]],v=[cv[t[0]],cv[t[1]],cv[t[2]],cv[t[3]]];if(!isFinite(v[0])||!isFinite(v[1])||!isFinite(v[2])||!isFinite(v[3]))continue;const pts=[];
+   for(const[a,b]of te){if((v[a]<0)!==(v[b]<0)){const tt=v[a]/(v[a]-v[b]);pts.push([p[a][0]+tt*(p[b][0]-p[a][0]),p[a][1]+tt*(p[b][1]-p[a][1]),p[a][2]+tt*(p[b][2]-p[a][2])]);}}
+   if(pts.length===3)out.push(...pts[0],...pts[1],...pts[2]);else if(pts.length===4){const o=orderQuad(pts);out.push(...o[0],...o[1],...o[2]);out.push(...o[0],...o[2],...o[3]);}}}
+ return out; }
+
+// ================= ELEMENTOS =================
+const SCHEMAS={
+  ponto:{n:'Ponto',p:[['x',1],['y',2],['z',0]]},
+  vetor:{n:'Vetor',p:[['x',3],['y',2],['z',1]]},
+  reta:{n:'Reta',p:[['px',0],['py',0],['pz',0],['ux',1],['uy',1],['uz',0]]},
+  plano:{n:'Plano (ax+by+cz=d)',p:[['a',0],['b',1],['c',0],['d',2]]},
+  elipse:{n:'Elipse (z=0)',p:[['a',4],['b',2]]},
+  hiperbole:{n:'Hipérbole (z=0)',p:[['a',3],['b',2]]},
+  parabola:{n:'Parábola (z=0)',p:[['a',0.25]]},
+  esfera:{n:'Esfera',p:[['cx',0],['cy',0],['cz',0],['r',3]]},
+  elipsoide:{n:'Elipsoide',p:[['a',4],['b',3],['c',2]]},
+  hip1:{n:'Hiperboloide 1 folha',p:[['a',2],['b',2],['c',2]]},
+  hip2:{n:'Hiperboloide 2 folhas',p:[['a',2],['b',2],['c',2]]},
+  parabe:{n:'Paraboloide elíptico',p:[['a',2],['b',2]]},
+  parabh:{n:'Paraboloide hiperbólico',p:[['a',2],['b',2]]},
+  equacao:{n:'Equação livre  F=0',p:[],eq:true}
+};
+const palette=[0xffd166,0x4cc9f0,0xef476f,0x06d6a0,0xb388ff,0xff924c,0x80ed99,0xf78c6b];
+const LINEAR=new Set(['ponto','vetor','reta','plano']);
+const elements=[]; let ci=0, sel=null, dragPt=false;
+const KEY='geopsic_geometria';
+
+function implicit(type,P){
+  switch(type){
+   case 'elipse': return {dim:2,F:(x,y)=>x*x/(P.a*P.a)+y*y/(P.b*P.b)-1};
+   case 'hiperbole': return {dim:2,F:(x,y)=>x*x/(P.a*P.a)-y*y/(P.b*P.b)-1};
+   case 'parabola': return {dim:2,F:(x,y)=>P.a*x*x-y};
+   case 'esfera': return {dim:3,F:(x,y,z)=>(x-P.cx)**2+(y-P.cy)**2+(z-P.cz)**2-P.r*P.r};
+   case 'elipsoide': return {dim:3,F:(x,y,z)=>x*x/(P.a*P.a)+y*y/(P.b*P.b)+z*z/(P.c*P.c)-1};
+   case 'hip1': return {dim:3,F:(x,y,z)=>x*x/(P.a*P.a)+y*y/(P.b*P.b)-z*z/(P.c*P.c)-1};
+   case 'hip2': return {dim:3,F:(x,y,z)=>z*z/(P.c*P.c)-x*x/(P.a*P.a)-y*y/(P.b*P.b)-1};
+   case 'parabe': return {dim:3,F:(x,y,z)=>x*x/(P.a*P.a)+y*y/(P.b*P.b)-z};
+   case 'parabh': return {dim:3,F:(x,y,z)=>x*x/(P.a*P.a)-y*y/(P.b*P.b)-z};
+  }
+}
+function texEq(type,P,eq){
+  const f=v=>(+v).toFixed(2).replace(/\.00$/,'').replace(/0$/,'');
+  switch(type){
+   case 'ponto': return `P=(${f(P.x)},\\,${f(P.y)},\\,${f(P.z)})`;
+   case 'vetor': return `\\vec v=(${f(P.x)},\\,${f(P.y)},\\,${f(P.z)})`;
+   case 'reta': return `r:\\ (x,y,z)=(${f(P.px)},${f(P.py)},${f(P.pz)})+t(${f(P.ux)},${f(P.uy)},${f(P.uz)})`;
+   case 'plano': return `${f(P.a)}x+${f(P.b)}y+${f(P.c)}z=${f(P.d)}`;
+   case 'elipse': return `\\frac{x^2}{${f(P.a*P.a)}}+\\frac{y^2}{${f(P.b*P.b)}}=1`;
+   case 'hiperbole': return `\\frac{x^2}{${f(P.a*P.a)}}-\\frac{y^2}{${f(P.b*P.b)}}=1`;
+   case 'parabola': return `y=${f(P.a)}x^2`;
+   case 'esfera': return `(x-${f(P.cx)})^2+(y-${f(P.cy)})^2+(z-${f(P.cz)})^2=${f(P.r*P.r)}`;
+   case 'elipsoide': return `\\frac{x^2}{${f(P.a*P.a)}}+\\frac{y^2}{${f(P.b*P.b)}}+\\frac{z^2}{${f(P.c*P.c)}}=1`;
+   case 'hip1': return `\\frac{x^2}{${f(P.a*P.a)}}+\\frac{y^2}{${f(P.b*P.b)}}-\\frac{z^2}{${f(P.c*P.c)}}=1`;
+   case 'hip2': return `\\frac{z^2}{${f(P.c*P.c)}}-\\frac{x^2}{${f(P.a*P.a)}}-\\frac{y^2}{${f(P.b*P.b)}}=1`;
+   case 'parabe': return `z=\\frac{x^2}{${f(P.a*P.a)}}+\\frac{y^2}{${f(P.b*P.b)}}`;
+   case 'parabh': return `z=\\frac{x^2}{${f(P.a*P.a)}}-\\frac{y^2}{${f(P.b*P.b)}}`;
+   case 'equacao': try{ return String(eq).split('=').map(s=>math.parse(s).toTex()).join('='); }catch(e){ return eq||''; }
+  }
+  return '';
+}
+function kf(tex){ const s=document.createElement('div'); s.className='kf'; try{ katex.render(tex,s,{throwOnError:false}); }catch(e){ s.textContent=tex; } return s; }
+
+function buildObj(type,P,color,eq){
+  if(type==='ponto'){ const g=new THREE.Group(); const m=new THREE.Mesh(new THREE.SphereGeometry(0.22,18,14),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.3})); g.add(m); const l=label('P','#'+color.toString(16).padStart(6,'0')); l.position.set(P.x,P.y,P.z+0.6); g.add(l); m.position.set(P.x,P.y,P.z); return {obj:g,geo:{kind:'ponto',pt:V(P.x,P.y,P.z)}}; }
+  if(type==='vetor'){ const o=V(0,0,0),v=V(P.x,P.y,P.z); const a=new THREE.ArrowHelper(v.clone().normalize(),o,v.length()||1e-3,color,Math.min(0.6,v.length()*.2),Math.min(0.35,v.length()*.12)); return {obj:a,geo:{kind:'vetor',o,v}}; }
+  if(type==='reta'){ const A=V(P.px,P.py,P.pz),u=V(P.ux,P.uy,P.uz); if(u.length()<1e-6)u.set(1,0,0); const d=u.clone().normalize(); const g=new THREE.BufferGeometry().setFromPoints([A.clone().addScaledVector(d,-1000),A.clone().addScaledVector(d,1000)]); return {obj:new THREE.Line(g,new THREE.LineBasicMaterial({color})),geo:{kind:'reta',A,u}}; }
+  if(type==='plano'){ const n=V(P.a,P.b,P.c); if(n.length()<1e-6)n.set(0,1,0); const m=new THREE.Mesh(new THREE.PlaneGeometry(16,16),new THREE.MeshStandardMaterial({color,transparent:true,opacity:.28,side:THREE.DoubleSide})); m.quaternion.setFromUnitVectors(V(0,0,1),n.clone().normalize()); m.position.copy(n.clone().normalize().multiplyScalar(P.d/n.length())); return {obj:m,geo:{kind:'plano',n,d:P.d}}; }
+  // implícitos
+  let F,dim;
+  if(type==='equacao'){ const s=(eq||'').split('='); const fs=s.length===2?`(${s[0]})-(${s[1]})`:eq; let code; try{code=math.parse(fs).compile();}catch(e){return null;} dim=/[zZ]/.test(eq)?3:2; F=dim===3?((x,y,z)=>{try{return code.evaluate({x,y,z});}catch(e){return NaN;}}):((x,y)=>{try{return code.evaluate({x,y,z:0});}catch(e){return NaN;}}); }
+  else { const im=implicit(type,P); if(!im)return null; F=im.F; dim=im.dim; }
+  if(dim===2){ const seg=marchSquares(F,14,220); if(!seg.length)return null; const pos=[]; for(const[x,y]of seg)pos.push(x,y,0.02); const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); return {obj:new THREE.LineSegments(g,new THREE.LineBasicMaterial({color})),geo:{kind:'curva',F,dim:2}}; }
+  const tris=marchTet(F,13,48); if(!tris.length)return null; const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(tris,3)); g.computeVertexNormals(); return {obj:new THREE.Mesh(g,new THREE.MeshStandardMaterial({color,roughness:.4,metalness:.05,side:THREE.DoubleSide,transparent:true,opacity:.9})),geo:{kind:'superficie',F,dim:3}};
+}
+
+function anchorOf(geo){ if(!geo) return V(0,0,0); if(geo.kind==='ponto') return geo.pt.clone(); if(geo.kind==='vetor') return geo.o.clone().add(geo.v); if(geo.kind==='reta') return geo.A.clone(); if(geo.kind==='plano') return geo.n.clone().multiplyScalar(geo.d/(geo.n.lengthSq()||1)); return V(0,0,0); }
+function addEl(type,P,color,eq){ const r=buildObj(type,P,color,eq); if(!r){ alert('Não consegui construir esse elemento. Verifique os valores/equação.'); return null; }
+  r.obj.renderOrder=1; scene.add(r.obj); const el={id:'e'+(ci++),type,P:Object.assign({},P),color,eq,obj:r.obj,geo:r.geo,anchor:anchorOf(r.geo)}; elements.push(el); return el; }
+function removeEl(el){ scene.remove(el.obj); el.obj.geometry&&el.obj.geometry.dispose&&el.obj.geometry.dispose(); el.obj.material&&el.obj.material.dispose&&el.obj.material.dispose(); elements.splice(elements.indexOf(el),1); if(sel===el)sel=null; save(); refresh(); }
+
+// ---- equação livre + atalhos ----
+function insAt(inp,before,after){ const s=inp.selectionStart??inp.value.length, e=inp.selectionEnd??inp.value.length, v=inp.value; inp.value=v.slice(0,s)+before+v.slice(s,e)+after+v.slice(e); const cp=s+before.length; inp.focus(); inp.setSelectionRange(cp,cp); eqPrev(); }
+$('eqkeys').querySelectorAll('button').forEach(b=>b.onclick=()=>{ const I=$('eqfree'),k=b.dataset.k;
+  if(k==='frac') insAt(I,'(',')/( )'); else if(k==='exp') insAt(I,'^(',')'); else if(k==='sqrt') insAt(I,'sqrt(',')'); else if(k==='pi') insAt(I,'pi',''); else if(k==='eq') insAt(I,'=',''); });
+function eqPrev(){ const s=$('eqfree').value.trim(), el=$('eqPrev'); if(!s){ el.innerHTML=''; return; } try{ katex.render(s.split('=').map(x=>math.parse(x).toTex()).join('='),el,{throwOnError:false}); }catch(e){ el.textContent=s; } }
+$('eqfree').addEventListener('input',eqPrev);
+$('addEq').onclick=()=>{ const eq=$('eqfree').value.trim(); if(!eq)return; const el=addEl('equacao',{},palette[elements.length%palette.length],eq); if(el){ el.anchor=V(0,0,0); sel=el; save(); refresh(); $('eqfree').value=''; eqPrev(); } };
+
+// ---- paleta arrastável (drag-and-drop) ----
+const PALETTE=[['ponto','Ponto'],['vetor','Vetor'],['reta','Reta'],['plano','Plano'],['elipse','Elipse'],['hiperbole','Hipérbole'],['parabola','Parábola'],['esfera','Esfera'],['elipsoide','Elipsoide'],['hip1','Hiperbol. 1 folha'],['hip2','Hiperbol. 2 folhas'],['parabe','Parab. elíptico'],['parabh','Parab. hiperbólico']];
+PALETTE.forEach(([t,n])=>{ const c=document.createElement('div'); c.className='chip'; c.textContent=n; c.draggable=true; c.ondragstart=e=>e.dataTransfer.setData('t',t); $('palette').appendChild(c); });
+const ray=new THREE.Raycaster(), ground=new THREE.Plane(V(0,0,1),0); // chão = plano XY (z=0)
+function dropPoint(e){ const r=renderer.domElement.getBoundingClientRect(); ray.setFromCamera(new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1),camera); const pt=new THREE.Vector3(); return ray.ray.intersectPlane(ground,pt)?pt:V(0,0,0); }
+function defParams(t,p){ const P={}; (SCHEMAS[t].p||[]).forEach(([k,d])=>P[k]=d);
+  if('x' in P){P.x=+p.x.toFixed(2);P.y=+p.y.toFixed(2);} if('cx' in P){P.cx=+p.x.toFixed(2);P.cy=+p.y.toFixed(2);} if('px' in P){P.px=+p.x.toFixed(2);P.py=+p.y.toFixed(2);} return P; }
+renderer.domElement.addEventListener('dragover',e=>e.preventDefault());
+renderer.domElement.addEventListener('drop',e=>{ e.preventDefault(); const t=e.dataTransfer.getData('t'); if(!t)return; const p=dropPoint(e); const el=addEl(t,defParams(t,p),palette[elements.length%palette.length]); if(el){ el.anchor=p.clone(); sel=el; save(); refresh(); openPopup(el); } });
+
+// ---- pop-up: fórmula em LaTeX com lacunas (inputs) sobrepostas ----
+const LTPL={
+  ponto:'P=\\left({{x}},\\,{{y}},\\,{{z}}\\right)',
+  vetor:'\\vec v=\\left({{x}},\\,{{y}},\\,{{z}}\\right)',
+  reta:'(x,y,z)=\\left({{px}},{{py}},{{pz}}\\right)+t\\left({{ux}},{{uy}},{{uz}}\\right)',
+  plano:'{{a}}\\,x+{{b}}\\,y+{{c}}\\,z={{d}}',
+  elipse:'\\dfrac{x^{2}}{({{a}})^{2}}+\\dfrac{y^{2}}{({{b}})^{2}}=1',
+  hiperbole:'\\dfrac{x^{2}}{({{a}})^{2}}-\\dfrac{y^{2}}{({{b}})^{2}}=1',
+  parabola:'y={{a}}\\,x^{2}',
+  esfera:'(x-{{cx}})^{2}+(y-{{cy}})^{2}+(z-{{cz}})^{2}=({{r}})^{2}',
+  elipsoide:'\\dfrac{x^{2}}{({{a}})^{2}}+\\dfrac{y^{2}}{({{b}})^{2}}+\\dfrac{z^{2}}{({{c}})^{2}}=1',
+  hip1:'\\dfrac{x^{2}}{({{a}})^{2}}+\\dfrac{y^{2}}{({{b}})^{2}}-\\dfrac{z^{2}}{({{c}})^{2}}=1',
+  hip2:'\\dfrac{z^{2}}{({{c}})^{2}}-\\dfrac{x^{2}}{({{a}})^{2}}-\\dfrac{y^{2}}{({{b}})^{2}}=1',
+  parabe:'z=\\dfrac{x^{2}}{({{a}})^{2}}+\\dfrac{y^{2}}{({{b}})^{2}}',
+  parabh:'z=\\dfrac{x^{2}}{({{a}})^{2}}-\\dfrac{y^{2}}{({{b}})^{2}}'
+};
+let popupEl=null;
+function buildTpl(el){ const body=$('popBody'); body.innerHTML=''; body.className='tplx'; const ltpl=LTPL[el.type];
+  if(!ltpl){ body.className='muted'; body.textContent='Use o campo de equação abaixo (F = 0).'; return; }
+  const sc=SCHEMAS[el.type].p||[]; const keys=[];
+  const latex=ltpl.replace(/\{\{(\w+)\}\}/g,(_,k)=>{ keys.push(k); return `\\htmlClass{kb kb-${k}}{\\phantom{-99.9}}`; });
+  try{ katex.render(latex, body, {trust:true, strict:false, throwOnError:false}); }catch(e){ body.className='muted'; body.textContent=SCHEMAS[el.type].n; return; }
+  const br=body.getBoundingClientRect();
+  keys.forEach(k=>{ const ph=body.querySelector('.kb-'+k); if(!ph) return; const r=ph.getBoundingClientRect();
+    const i=document.createElement('input'); i.type='number'; i.step='0.5'; i.className='kbin'; i.dataset.k=k;
+    const def=(sc.find(p=>p[0]===k)||[])[1]; i.value=(el.P&&el.P[k]!=null)?el.P[k]:(def!=null?def:0);
+    i.style.left=(r.left-br.left+body.scrollLeft)+'px'; i.style.top=(r.top-br.top)+'px'; i.style.width=Math.max(28,r.width)+'px'; i.style.height=Math.max(20,r.height)+'px';
+    body.appendChild(i); });
+}
+function openPopup(el){ popupEl=el; $('popTitle').textContent=SCHEMAS[el.type].n; $('popup').style.display='block'; buildTpl(el);
+  const imp=!LINEAR.has(el.type); $('popEq').style.display=imp?'block':'none'; $('popEq').value=el.type==='equacao'?(el.eq||''):''; positionPopup(); }
+function positionPopup(){ const Pn=$('popup'); if(!popupEl||Pn.style.display==='none')return; const v=(popupEl.anchor||V(0,0,0)).clone(); v.z+=1.2; v.project(camera); const x=(v.x*.5+.5)*innerWidth,y=(-v.y*.5+.5)*innerHeight; const w=Pn.offsetWidth||240,h=Pn.offsetHeight||200; Pn.style.left=Math.max(8,Math.min(innerWidth-w-8,x-w/2))+'px'; Pn.style.top=Math.max(60,Math.min(innerHeight-h-8,y-h-12))+'px'; }
+$('popX').onclick=()=>{ $('popup').style.display='none'; popupEl=null; };
+$('popOK').onclick=()=>{ if(!popupEl)return; const el=popupEl, eq=$('popEq').value.trim(); const P={}; $('popBody').querySelectorAll('input').forEach(i=>P[i.dataset.k]=+i.value||0); updateEl(el, eq?'equacao':el.type, eq?{}:P, eq); $('popup').style.display='none'; popupEl=null; save(); refresh(); };
+function updateEl(el,type,P,eq){ const color=el.color, anchor=el.anchor, old=el.obj; const r=buildObj(type,P,color,eq);
+  if(!r){ alert('Equação/parâmetros inválidos.'); return; }
+  scene.remove(old); old.geometry&&old.geometry.dispose&&old.geometry.dispose(); old.material&&old.material.dispose&&old.material.dispose();
+  r.obj.renderOrder=1; scene.add(r.obj); el.type=type; el.P=P; el.eq=eq; el.obj=r.obj; el.geo=r.geo; el.anchor=anchorOf(r.geo)||anchor; }
+
+// ---- propriedades + interações ----
+function nomeEl(el){ return SCHEMAS[el.type].n + (el.type==='ponto'?` (${el.P.x},${el.P.y},${el.P.z})`:''); }
+function props(el){ const box=$('props'); box.innerHTML=''; if(!el){ box.innerHTML='<span class="muted">Selecione um elemento.</span>'; return; }
+  box.appendChild(kf(texEq(el.type,el.P,el.eq)));
+  const g=el.geo;
+  if(g.kind==='ponto'){ box.appendChild(kf(`|OP|=${g.pt.length().toFixed(3)}`)); }
+  else if(g.kind==='vetor'){ box.appendChild(kf(`|\\vec v|=\\sqrt{${(g.v.x).toFixed(1)}^2+${(g.v.y).toFixed(1)}^2+${(g.v.z).toFixed(1)}^2}=${g.v.length().toFixed(3)}`)); }
+  else if(g.kind==='reta'){ const d=g.u.clone().normalize(); box.appendChild(kf(`\\vec u=(${g.u.x},${g.u.y},${g.u.z}),\\ \\hat u=(${d.x.toFixed(2)},${d.y.toFixed(2)},${d.z.toFixed(2)})`)); }
+  else if(g.kind==='plano'){ box.appendChild(kf(`\\vec n=(${g.n.x},${g.n.y},${g.n.z}),\\ |\\vec n|=${g.n.length().toFixed(3)}`)); }
+  const btn=document.createElement('button'); btn.className='act'; btn.style.marginTop='8px'; btn.textContent='Editar fórmula'; btn.onclick=()=>openPopup(el); box.appendChild(btn);
+}
+function fmt(n){ return (+n).toFixed(3); }
+const vt=v=>`(${(+v.x).toFixed(2)},\\,${(+v.y).toFixed(2)},\\,${(+v.z).toFixed(2)})`;
+const degC=c=>(Math.acos(Math.max(-1,Math.min(1,c)))*180/Math.PI).toFixed(2);
+const degS=s=>(Math.asin(Math.max(0,Math.min(1,Math.abs(s))))*180/Math.PI).toFixed(2);
+
+// ===== interações com superfícies (quádricas) e curvas (cônicas) =====
+function catOf(el){ const k=el.geo.kind; if(k==='curva')return 'C'; if(k==='superficie')return 'S'; return ({ponto:'P',vetor:'V',reta:'R',plano:'PL'})[k]; }
+function gradF(F,x,y,z){ const h=1e-4; return [ (F(x+h,y,z)-F(x-h,y,z))/(2*h), (F(x,y+h,z)-F(x,y-h,z))/(2*h), (F(x,y,z+h)-F(x,y,z-h))/(2*h) ]; }
+function dedupPts(pts,tol){ const out=[]; pts.forEach(p=>{ if(!out.some(q=>q.distanceTo(p)<tol)) out.push(p); }); return out; }
+function pp(p){ return `(${(+p.x).toFixed(3)},\\,${(+p.y).toFixed(3)},\\,${(+p.z).toFixed(3)})`; }
+function pushPts(out,label,pts){ if(!pts||!pts.length){ out.push({l:label,v:'nenhum ponto'}); return; }
+  pts.forEach((p,i)=>out.push({l:label+(pts.length>1?` ${i+1}`:''),t:pp(p)})); }
+// raiz numérica de F=0 ao longo da reta A+t·u (qualquer grau) — para 'equação livre'
+function rootsLine3(F,A,u,R,N){ const d=u.clone().normalize(); const pts=[];
+  const g=t=>{ const v=F(A.x+d.x*t,A.y+d.y*t,A.z+d.z*t); return isFinite(v)?v:NaN; };
+  let t0=-R,g0=g(t0);
+  for(let i=1;i<=N;i++){ const t1=-R+2*R*i/N, g1=g(t1);
+    if(isFinite(g0)&&isFinite(g1)&&((g0<0)!==(g1<0))){ let a=t0,b=t1,ga=g0;
+      for(let k=0;k<48;k++){ const m=.5*(a+b),gm=g(m); if(!isFinite(gm))break; if((ga<0)!==(gm<0))b=m; else {a=m;ga=gm;} }
+      pts.push(A.clone().addScaledVector(d,.5*(a+b))); }
+    t0=t1; g0=g1; }
+  return dedupPts(pts,1e-2); }
+// reta × forma de 2º grau: F restrita à reta é quadrática -> resolve exato (Δ)
+function lineQuad(F,A,u,threeD){ const ev=t=>{ const x=A.x+u.x*t,y=A.y+u.y*t,z=A.z+u.z*t; return threeD?F(x,y,z):F(x,y); };
+  const g1=ev(1),g0=ev(0),gm=ev(-1); const c=g0,a=(g1+gm)/2-g0,b=(g1-gm)/2; const mk=t=>A.clone().addScaledVector(u,t); let rel,pts=[];
+  if(Math.abs(a)<1e-9){ if(Math.abs(b)<1e-9){ rel=Math.abs(c)<1e-6?'reta contida na superfície':'sem interseção'; } else { pts.push(mk(-c/b)); rel='1 ponto (reta de grau 1 na forma)'; } }
+  else { const disc=b*b-4*a*c; if(disc<-1e-9) rel='não intersecta (Δ<0)';
+    else if(disc<1e-9){ pts.push(mk(-b/(2*a))); rel='tangente (Δ=0)'; }
+    else { const s=Math.sqrt(disc); pts.push(mk((-b-s)/(2*a)),mk((-b+s)/(2*a))); rel='secante (Δ>0, 2 pontos)'; } }
+  return {rel,pts}; }
+function planeBasis(n){ const nn=n.clone().normalize(); const t=Math.abs(nn.x)<0.9?V(1,0,0):V(0,1,0); const e1=t.clone().addScaledVector(nn,-t.dot(nn)).normalize(); const e2=nn.clone().cross(e1).normalize(); return {e1,e2}; }
+function planeSection(F,n,d){ const b=planeBasis(n); const p0=n.clone().multiplyScalar(d/(n.lengthSq()||1));
+  const F2=(s,r)=>F(p0.x+b.e1.x*s+b.e2.x*r, p0.y+b.e1.y*s+b.e2.y*r, p0.z+b.e1.z*s+b.e2.z*r);
+  const seg=marchSquares(F2,30,160); const pts=[]; for(let i=0;i<seg.length;i++){ const[s,r]=seg[i]; pts.push(p0.clone().addScaledVector(b.e1,s).addScaledVector(b.e2,r)); }
+  return {hits:seg.length/2, pts:dedupPts(pts,0.6)}; }
+// coeficientes de F (assume 2º grau): a x²+b y²+c z²+d xy+e xz+f yz+g x+h y+i z+j
+function quadricCoeffs(F){ const j=F(0,0,0);
+  const fx=F(1,0,0),fxn=F(-1,0,0),fy=F(0,1,0),fyn=F(0,-1,0),fz=F(0,0,1),fzn=F(0,0,-1);
+  return { a:(fx+fxn)/2-j, g:(fx-fxn)/2, b:(fy+fyn)/2-j, h:(fy-fyn)/2, c:(fz+fzn)/2-j, i:(fz-fzn)/2,
+    d:F(1,1,0)-fx-fy+j, e:F(1,0,1)-fx-fz+j, f:F(0,1,1)-fy-fz+j, j }; }
+function isQuadric(F){ const K=quadricCoeffs(F); const x=1.7,y=-0.9,z=1.3;
+  const pred=K.a*x*x+K.b*y*y+K.c*z*z+K.d*x*y+K.e*x*z+K.f*y*z+K.g*x+K.h*y+K.i*z+K.j; const real=F(x,y,z);
+  return isFinite(real)&&Math.abs(pred-real)<1e-6*(1+Math.abs(real)); }
+const fmtR=x=>{ let y=Math.round(x*1000)/1000; if(Object.is(y,-0))y=0; return y; };
+// "A v1² + B v1v2 + C v2² + D v1 + E v2 + G = 0" em LaTeX
+function conicTex(A,B,C,D,E,G,v1,v2){
+  const parts=[[A,v1+'^2'],[B,v1+v2],[C,v2+'^2'],[D,v1],[E,v2],[G,'']]; let s='',first=true;
+  for(const[co0,sym] of parts){ const co=fmtR(co0); if(Math.abs(co)<1e-6) continue;
+    const mag=Math.abs(co), magS=(Math.abs(mag-1)<1e-9&&sym)?'':String(fmtR(mag));
+    if(first){ s+=(co<0?'-':'')+magS+sym; first=false; } else { s+=(co<0?' - ':' + ')+magS+sym; } }
+  return (first?'0':s)+' = 0'; }
+function classifyConic(A,B,C,D,E,G){ const disc=B*B-4*A*C;
+  const det3=A*(C*G-E*E/4)-(B/2)*((B/2)*G-(E/2)*(D/2))+(D/2)*((B/2)*(E/2)-C*(D/2));
+  const eps=1e-6*(1+Math.abs(A)+Math.abs(B)+Math.abs(C)+Math.abs(D)+Math.abs(E)+Math.abs(G));
+  if(Math.abs(det3)<eps){ let t = disc<-eps?'ponto (cônica degenerada)':(disc>eps?'par de retas concorrentes':'retas paralelas/coincidentes'); return {tipo:t,disc,degen:true}; }
+  if(disc<-eps) return {tipo:(Math.abs(A-C)<eps&&Math.abs(B)<eps)?'circunferência':'elipse',disc,degen:false};
+  if(disc>eps) return {tipo:'hipérbole',disc,degen:false};
+  return {tipo:'parábola',disc,degen:false}; }
+function canonicalCentral(A,B,C,D,E,G){ const den=4*A*C-B*B; if(Math.abs(den)<1e-9) return null;
+  const x0=(B*E-2*C*D)/den, y0=(B*D-2*A*E)/den; const Gc=(D*x0+E*y0)/2+G;
+  const tr=A+C, dd=Math.sqrt((A-C)*(A-C)+B*B), l1=(tr+dd)/2, l2=(tr-dd)/2;
+  return {x0,y0,Gc,l1,l2}; }
+function centerTo3D(n,d,c1,c2){ if(Math.abs(n.y)<1e-9&&Math.abs(n.z)<1e-9) return V(d/n.x,c1,c2);
+  if(Math.abs(n.x)<1e-9&&Math.abs(n.z)<1e-9) return V(c1,d/n.y,c2); return V(c1,c2,d/n.z); }
+
+function surfPoint(S,P){ const p=P.geo.pt,F=S.geo.F,val=F(p.x,p.y,p.z),out=[];
+  out.push({l:'Substituição',t:`F(P)=${fmt(val)}`});
+  out.push({l:'Pertencimento',v:Math.abs(val)<1e-3?'P ∈ superfície (sim)':'P ∉ superfície (não)'});
+  if(['esfera','elipsoide'].includes(S.type)) out.push({l:'Posição',v:val<0?'interior (dentro)':(val>0?'exterior (fora)':'sobre a superfície')});
+  if(S.type==='esfera'){ const C=V(S.P.cx,S.P.cy,S.P.cz),r=S.P.r,d=p.distanceTo(C); const dir=d>1e-9?p.clone().sub(C).multiplyScalar(1/d):V(1,0,0);
+    out.push({l:'Distância ao centro',t:`|PC|=${fmt(d)}`});
+    out.push({l:'Distância à esfera',t:`\\big||PC|-r\\big|=${fmt(Math.abs(d-r))}`});
+    out.push({l:'Ponto mais próximo',t:pp(C.clone().addScaledVector(dir,r))}); }
+  else { const g=gradF(F,p.x,p.y,p.z),gl=Math.hypot(g[0],g[1],g[2]); if(gl>1e-6) out.push({l:'Distância aprox.',t:`\\frac{|F(P)|}{|\\nabla F|}\\approx ${fmt(Math.abs(val)/gl)}`}); }
+  return out; }
+function surfLine(S,R){ const A=R.geo.A,u=R.geo.u,F=S.geo.F; const res = S.type==='equacao' ? (()=>{const pts=rootsLine3((x,y,z)=>F(x,y,z),A,u,80,6000);return{rel:`${pts.length} ponto(s)`,pts};})() : lineQuad(F,A,u,true);
+  const out=[{l:'Posição relativa',v:res.rel}]; pushPts(out,'Interseção',res.pts); return out; }
+function surfPlane(S,PL){ const n=PL.geo.n,d=PL.geo.d,out=[];
+  if(S.type==='esfera'){ const C=V(S.P.cx,S.P.cy,S.P.cz),r=S.P.r,dist=Math.abs(n.dot(C)-d)/n.length(); const foot=C.clone().addScaledVector(n,(d-n.dot(C))/n.lengthSq());
+    out.push({l:'Distância centro→plano',t:`\\frac{|\\vec n\\cdot C-d|}{|\\vec n|}=${fmt(dist)}`});
+    if(dist<r-1e-4){ out.push({l:'Posição',v:'o plano corta a esfera → secção é uma circunferência'}); out.push({l:'Centro do círculo',t:pp(foot)}); out.push({l:'Raio do círculo',t:`r_c=\\sqrt{r^2-d^2}=${fmt(Math.sqrt(Math.max(0,r*r-dist*dist)))}`}); out.push({l:'Normal do plano',t:pp(n.clone().normalize())}); }
+    else if(Math.abs(dist-r)<1e-3){ out.push({l:'Posição',v:'plano tangente'}); out.push({l:'Ponto de tangência',t:pp(foot)}); }
+    else out.push({l:'Posição',v:'plano não intersecta a esfera'});
+    return out; }
+  const F=S.geo.F;
+  if(S.type==='equacao' && !isQuadric(F)){ const sec=planeSection(F,n,d);
+    out.push({l:'Secção',v:'superfície de grau > 2 — mostrando pontos amostrados da interseção'});
+    if(sec.pts.length) pushPts(out,'Pontos da secção',sec.pts.slice(0,6)); else out.push({l:'Interseção',v:'não detectada'});
+    return out; }
+  const K=quadricCoeffs(F); let A,B,C,D,E,G,v1,v2,frame=null;
+  const ax=[Math.abs(n.x),Math.abs(n.y),Math.abs(n.z)], nz=ax.filter(t=>t>1e-9).length;
+  if(nz===1){
+    if(ax[1]<=1e-9&&ax[2]<=1e-9){ const k=d/n.x; v1='y';v2='z'; A=K.b;B=K.f;C=K.c;D=K.h+K.d*k;E=K.i+K.e*k;G=K.a*k*k+K.g*k+K.j; out.push({l:'Substituição no plano',t:`x=${fmtR(k)}`}); }
+    else if(ax[0]<=1e-9&&ax[2]<=1e-9){ const k=d/n.y; v1='x';v2='z'; A=K.a;B=K.e;C=K.c;D=K.g+K.d*k;E=K.i+K.f*k;G=K.b*k*k+K.h*k+K.j; out.push({l:'Substituição no plano',t:`y=${fmtR(k)}`}); }
+    else { const k=d/n.z; v1='x';v2='y'; A=K.a;B=K.d;C=K.b;D=K.g+K.e*k;E=K.h+K.f*k;G=K.c*k*k+K.i*k+K.j; out.push({l:'Substituição no plano',t:`z=${fmtR(k)}`}); }
+  } else {
+    const bb=planeBasis(n), p0=n.clone().multiplyScalar(d/n.lengthSq()); frame={bb,p0};
+    const g=(s,r)=>F(p0.x+bb.e1.x*s+bb.e2.x*r, p0.y+bb.e1.y*s+bb.e2.y*r, p0.z+bb.e1.z*s+bb.e2.z*r);
+    G=g(0,0); A=(g(1,0)+g(-1,0))/2-G; C=(g(0,1)+g(0,-1))/2-G; D=(g(1,0)-g(-1,0))/2; E=(g(0,1)-g(0,-1))/2; B=g(1,1)-g(1,0)-g(0,1)+G; v1='s';v2='r';
+    out.push({l:'Plano (coords. locais)',t:`X=${pp(p0)}+s\\,${pp(bb.e1)}+r\\,${pp(bb.e2)}`}); }
+  out.push({l:'Equação da secção',t:conicTex(A,B,C,D,E,G,v1,v2)});
+  const cl=classifyConic(A,B,C,D,E,G);
+  out.push({l:'Discriminante',t:`\\Delta=B^2-4AC=${fmtR(cl.disc)}`});
+  out.push({l:'Classificação',v:cl.tipo});
+  if(!cl.degen){ const cn=canonicalCentral(A,B,C,D,E,G);
+    if(cn){ const cen= frame? frame.p0.clone().addScaledVector(frame.bb.e1,cn.x0).addScaledVector(frame.bb.e2,cn.y0) : centerTo3D(n,d,cn.x0,cn.y0);
+      out.push({l:'Centro',t:pp(cen)});
+      out.push({l:'Autovalores',t:`\\lambda_1=${fmtR(cn.l1)},\\ \\lambda_2=${fmtR(cn.l2)}`});
+      out.push({l:'Equação reduzida',t:`${fmtR(cn.l1)}\\,u^2+${fmtR(cn.l2)}\\,w^2=${fmtR(-cn.Gc)}`});
+      const a1=(-cn.Gc)/cn.l1, a2=(-cn.Gc)/cn.l2;
+      if(a1>1e-9&&a2>1e-9) out.push({l:'Forma canônica',t:`\\frac{u^2}{${fmtR(a1)}}+\\frac{w^2}{${fmtR(a2)}}=1`});
+      else if(a1*a2<0) out.push({l:'Forma canônica',t:`\\frac{u^2}{${fmtR(Math.abs(a1))}}-\\frac{w^2}{${fmtR(Math.abs(a2))}}=${a1>0?'1':'-1'}`});
+      else out.push({l:'Observação',v:'sem pontos reais (cônica imaginária)'});
+    } else { const tr=A+C, dd=Math.sqrt((A-C)*(A-C)+B*B);
+      out.push({l:'Autovalores',t:`\\lambda_1=${fmtR((tr+dd)/2)},\\ \\lambda_2=${fmtR((tr-dd)/2)}`});
+      out.push({l:'Forma canônica',v:'parábola (λ u² = k w após rotação)'}); }
+  }
+  return out; }
+function curvePoint(C,P){ const p=P.geo.pt,F=C.geo.F,out=[]; const onZ=Math.abs(p.z)<1e-3,val=F(p.x,p.y);
+  out.push({l:'Plano da curva',v:onZ?'P em z=0 (plano da curva)':'P fora de z=0 → não pertence'});
+  out.push({l:'Substituição',t:`F(x,y)=${fmt(val)}`});
+  out.push({l:'Pertencimento',v:(onZ&&Math.abs(val)<1e-3)?'P ∈ curva (sim)':'P ∉ curva (não)'});
+  if(C.type==='elipse'&&onZ) out.push({l:'Posição',v:val<0?'interior':(val>0?'exterior':'sobre a curva')});
+  return out; }
+function curveLine(C,R){ const A=R.geo.A,u=R.geo.u,F=C.geo.F,out=[]; const inZ=Math.abs(A.z)<1e-6&&Math.abs(u.z)<1e-6;
+  if(inZ){ const res = C.type==='equacao' ? (()=>{const pts=rootsLine3((x,y,z)=>F(x,y),A,u,80,6000);return{rel:`${pts.length} ponto(s)`,pts};})() : lineQuad((x,y)=>F(x,y),A,u,false);
+    out.push({l:'Posição',v:'reta no plano z=0 (mesmo da curva)'}); out.push({l:'Posição relativa',v:res.rel}); pushPts(out,'Interseção',res.pts); return out; }
+  if(Math.abs(u.z)>1e-9){ const t=-A.z/u.z,q=A.clone().addScaledVector(u,t),val=F(q.x,q.y);
+    out.push({l:'Onde a reta fura z=0',t:`Q=${pp(q)}`});
+    out.push({l:'Q pertence à curva?',v:Math.abs(val)<1e-3?'sim — reta cruza a curva em Q':'não'});
+    if(Math.abs(val)<1e-3) pushPts(out,'Interseção',[q]); else out.push({l:'Interseção',v:'nenhum ponto'});
+    return out; }
+  out.push({l:'Posição',v:'reta paralela a z=0 fora do plano da curva → sem interseção'}); return out; }
+function curvePlane(C,PL){ const n=PL.geo.n,d=PL.geo.d,F=C.geo.F,out=[]; const a=n.x,b=n.y;
+  if(Math.abs(a)<1e-9&&Math.abs(b)<1e-9){ const zc=d/n.z; out.push({l:'Posição',v:Math.abs(zc)<1e-6?'o plano é z=0 → contém toda a curva':`plano paralelo a z=0 (z=${fmt(zc)}) → não toca a curva`}); return out; }
+  const A=Math.abs(a)>1e-9?V(d/a,0,0):V(0,d/b,0), u=V(b,-a,0);
+  const res = C.type==='equacao' ? (()=>{const pts=rootsLine3((x,y,z)=>F(x,y),A,u,80,6000);return{rel:`${pts.length} ponto(s)`,pts};})() : lineQuad((x,y)=>F(x,y),A,u,false);
+  out.push({l:'Reta plano ∩ (z=0)',t:`X=${pp(A)}+t\\,${pp(u)}`});
+  out.push({l:'Posição relativa',v:res.rel}); pushPts(out,'Interseção',res.pts); return out; }
+function surfCurve(S,C){ const segs=marchSquares((x,y)=>C.geo.F(x,y),16,400),F=S.geo.F,pts=[];
+  for(let i=0;i<segs.length;i+=2){ const p=segs[i],q=segs[i+1],va=F(p[0],p[1],0),vb=F(q[0],q[1],0);
+    if(isFinite(va)&&isFinite(vb)&&((va<0)!==(vb<0))){ const t=va/(va-vb); pts.push(V(p[0]+t*(q[0]-p[0]),p[1]+t*(q[1]-p[1]),0)); } }
+  const dp=dedupPts(pts,0.1),out=[]; out.push({l:'Plano da curva',v:'curva em z=0; interseção = pontos da curva sobre a superfície'});
+  out.push({l:'Posição relativa',v:dp.length?`${dp.length} ponto(s) de interseção`:'a curva não cruza a superfície'}); pushPts(out,'Interseção',dp); return out; }
+function curveCurve(C1,C2){ const segs=marchSquares((x,y)=>C1.geo.F(x,y),16,500),F=C2.geo.F,pts=[];
+  for(let i=0;i<segs.length;i+=2){ const p=segs[i],q=segs[i+1],va=F(p[0],p[1]),vb=F(q[0],q[1]);
+    if(isFinite(va)&&isFinite(vb)&&((va<0)!==(vb<0))){ const t=va/(va-vb); pts.push(V(p[0]+t*(q[0]-p[0]),p[1]+t*(q[1]-p[1]),0)); } }
+  const dp=dedupPts(pts,0.1),out=[]; out.push({l:'Posição',v:'curvas no plano z=0'});
+  out.push({l:'Posição relativa',v:dp.length?`${dp.length} ponto(s) de interseção`:'sem interseção'}); pushPts(out,'Interseção',dp); return out; }
+function surfSurf(S1,S2){ const out=[];
+  if(S1.type==='esfera'&&S2.type==='esfera'){ const C1=V(S1.P.cx,S1.P.cy,S1.P.cz),r1=S1.P.r,C2=V(S2.P.cx,S2.P.cy,S2.P.cz),r2=S2.P.r,d=C1.distanceTo(C2);
+    out.push({l:'Distância entre centros',t:`d=${fmt(d)}`});
+    if(d>r1+r2+1e-4) out.push({l:'Posição',v:'externas (sem interseção)'});
+    else if(Math.abs(d-(r1+r2))<1e-3) out.push({l:'Posição',v:'tangentes externamente'});
+    else if(d<Math.abs(r1-r2)-1e-4) out.push({l:'Posição',v:'uma dentro da outra (sem interseção)'});
+    else if(Math.abs(d-Math.abs(r1-r2))<1e-3) out.push({l:'Posição',v:'tangentes internamente'});
+    else { const a=(d*d+r1*r1-r2*r2)/(2*d),rc=Math.sqrt(Math.max(0,r1*r1-a*a)),ctr=C1.clone().addScaledVector(C2.clone().sub(C1).normalize(),a);
+      out.push({l:'Posição',v:'interseção = circunferência'}); out.push({l:'Centro do círculo',t:pp(ctr)}); out.push({l:'Raio do círculo',t:`r_c=${fmt(rc)}`}); out.push({l:'Normal (plano radical)',t:pp(C2.clone().sub(C1).normalize())}); }
+    return out; }
+  const tris=marchTet((x,y,z)=>S1.geo.F(x,y,z),14,24); let pos=false,neg=false;
+  for(let i=0;i<tris.length;i+=3){ const v=S2.geo.F(tris[i],tris[i+1],tris[i+2]); if(isFinite(v)){ if(v>1e-6)pos=true; else if(v<-1e-6)neg=true; } if(pos&&neg)break; }
+  out.push({l:'Interseção',v:'a interseção de duas quádricas é uma curva no espaço'});
+  out.push({l:'Posição relativa',v:(pos&&neg)?'as superfícies se intersectam':'sem interseção detectada'}); return out; }
+function interNL(a,b){ const ca=catOf(a),cb=catOf(b); if(ca==='V'||cb==='V') return null;
+  const aimp=(ca==='S'||ca==='C'), bimp=(cb==='S'||cb==='C');
+  if(aimp&&bimp){ if(ca==='S'&&cb==='S')return surfSurf(a,b); if(ca==='C'&&cb==='C')return curveCurve(a,b); const S=ca==='S'?a:b,C=ca==='C'?a:b; return surfCurve(S,C); }
+  const X=aimp?a:b, Y=aimp?b:a, cy=catOf(Y);
+  if(catOf(X)==='S'){ if(cy==='P')return surfPoint(X,Y); if(cy==='R')return surfLine(X,Y); if(cy==='PL')return surfPlane(X,Y); }
+  else { if(cy==='P')return curvePoint(X,Y); if(cy==='R')return curveLine(X,Y); if(cy==='PL')return curvePlane(X,Y); }
+  return null; }
+
+function interacoes(a,b){ if(!a||!b||a===b) return null;
+  if(LINEAR.has(a.type)&&LINEAR.has(b.type)) return interLinear(a,b);
+  return interNL(a,b); }
+function interLinear(a,b){
+  const ord={ponto:0,vetor:1,reta:2,plano:3}; let ga=a.geo, gb=b.geo; if(ord[ga.kind]>ord[gb.kind]){ const t=ga; ga=gb; gb=t; }
+  const out=[], k=ga.kind+'-'+gb.kind;
+  if(k==='ponto-ponto'){ const p1=ga.pt,p2=gb.pt,v=p2.clone().sub(p1),M=p1.clone().add(p2).multiplyScalar(.5);
+    out.push({l:'Distância',t:`|P_2-P_1|=${fmt(p1.distanceTo(p2))}`});
+    out.push({l:'Vetor diretor',t:`\\vec v=P_2-P_1=${vt(v)}`});
+    out.push({l:'Ponto médio',t:`M=\\tfrac{P_1+P_2}{2}=${vt(M)}`}); }
+  else if(k==='ponto-vetor'){ const p=ga.pt,v=gb.v,Q=p.clone().add(v);
+    out.push({l:'Translação',t:`Q=P+\\vec v=${vt(Q)}`});
+    out.push({l:'Reta (ponto + vetor diretor)',t:`r:\\ X=${vt(p)}+t\\,${vt(v)}`}); }
+  else if(k==='ponto-reta'){ const p=ga.pt,A=gb.A,u=gb.u,AP=p.clone().sub(A),cr=AP.clone().cross(u),d=cr.length()/u.length(),tt=AP.dot(u)/u.lengthSq(),foot=A.clone().addScaledVector(u,tt);
+    out.push({l:'Pertencimento',v: cr.length()<1e-3?'P ∈ r (sim)':'P ∉ r (não)'});
+    out.push({l:'Distância',t:`d=\\frac{|\\vec{AP}\\times\\vec u|}{|\\vec u|}=${fmt(d)}`});
+    out.push({l:'Projeção ortogonal',t:`P'=A+\\frac{\\vec{AP}\\cdot\\vec u}{|\\vec u|^2}\\vec u=${vt(foot)}`}); }
+  else if(k==='ponto-plano'){ const p=ga.pt,n=gb.n,d0=gb.d,val=n.dot(p)-d0,dist=Math.abs(val)/n.length(),foot=p.clone().addScaledVector(n,-val/n.lengthSq());
+    out.push({l:'Pertencimento',v: Math.abs(val)<1e-3?'P ∈ π (sim)':'P ∉ π (não)'});
+    out.push({l:'Distância',t:`d=\\frac{|a x_0+b y_0+c z_0-d|}{\\sqrt{a^2+b^2+c^2}}=${fmt(dist)}`});
+    out.push({l:'Projeção ortogonal',t:`P'=P-\\frac{(\\vec n\\cdot P-d)}{|\\vec n|^2}\\vec n=${vt(foot)}`}); }
+  else if(k==='vetor-vetor'){ const u=ga.v,v=gb.v,esc=u.dot(v),cr=u.clone().cross(v),pr=u.clone().multiplyScalar(u.lengthSq()?esc/u.lengthSq():0);
+    out.push({l:'Produto escalar',t:`\\vec u\\cdot\\vec v=${fmt(esc)}`});
+    if(Math.abs(esc)<1e-4) out.push({l:'Ortogonalidade',v:'ortogonais (u·v = 0)'});
+    out.push({l:'Ângulo',t:`\\cos\\theta=\\frac{\\vec u\\cdot\\vec v}{|\\vec u||\\vec v|}\\Rightarrow\\theta=${degC(esc/((u.length()*v.length())||1))}^\\circ`});
+    out.push({l:'Produto vetorial',t:`\\vec u\\times\\vec v=${vt(cr)}`});
+    out.push({l:'Área do paralelogramo',t:`|\\vec u\\times\\vec v|=${fmt(cr.length())}`});
+    out.push({l:'Projeção (v sobre u)',t:`\\frac{\\vec u\\cdot\\vec v}{|\\vec u|^2}\\vec u=${vt(pr)}`});
+    out.push({l:'Produto misto',v:'requer 3 vetores: [u,v,w] = (u×v)·w'}); }
+  else if(k==='vetor-reta'){ const v=ga.v,u=gb.u,cr=v.clone().cross(u),esc=v.dot(u);
+    out.push({l:'Paralelismo',v: cr.length()<1e-3?'v ∥ r (v múltiplo de u)':'não'});
+    out.push({l:'Ortogonalidade',t:`\\vec v\\cdot\\vec u=${fmt(esc)}${Math.abs(esc)<1e-4?'\\Rightarrow \\vec v\\perp r':''}`}); }
+  else if(k==='vetor-plano'){ const v=ga.v,n=gb.n,esc=v.dot(n),cr=v.clone().cross(n);
+    out.push({l:'Paralelo ao plano',v: Math.abs(esc)<1e-4?'sim (v·n = 0)':'não'});
+    out.push({l:'Ortogonal ao plano',v: cr.length()<1e-3?'sim (v ∥ n)':'não'});
+    out.push({l:'Ângulo',t:`\\sin\\theta=\\frac{|\\vec v\\cdot\\vec n|}{|\\vec v||\\vec n|}\\Rightarrow\\theta=${degS(esc/((v.length()*n.length())||1))}^\\circ`}); }
+  else if(k==='reta-reta'){ const A1=ga.A,u1=ga.u,A2=gb.A,u2=gb.u,cr=u1.clone().cross(u2),w=A2.clone().sub(A1),par=cr.length()<1e-6; let rel,d;
+    if(par){ const coinc=w.clone().cross(u1).length()<1e-3; rel=coinc?'coincidentes':'paralelas distintas'; d=w.clone().cross(u1).length()/u1.length(); }
+    else { const trip=w.dot(cr); if(Math.abs(trip)<1e-4){ rel='concorrentes'; d=0; } else { rel='reversas'; d=Math.abs(trip)/cr.length(); } }
+    out.push({l:'Posição relativa',v:rel});
+    out.push({l:'Ângulo',t:`\\cos\\theta=\\frac{|\\vec{u_1}\\cdot\\vec{u_2}|}{|\\vec{u_1}||\\vec{u_2}|}\\Rightarrow\\theta=${degC(Math.abs(u1.dot(u2))/((u1.length()*u2.length())||1))}^\\circ`});
+    if(par) out.push({l:'Distância',t:`d=\\frac{|\\vec{A_1A_2}\\times\\vec u|}{|\\vec u|}=${fmt(d)}`});
+    else if(rel==='reversas') out.push({l:'Distância',t:`d=\\frac{|(\\vec{A_2}-\\vec{A_1})\\cdot(\\vec{u_1}\\times\\vec{u_2})|}{|\\vec{u_1}\\times\\vec{u_2}|}=${fmt(d)}`});
+    else { const tt=w.clone().cross(u2).dot(cr)/cr.lengthSq(); const I=A1.clone().addScaledVector(u1,tt); out.push({l:'Interseção',t:`I=${vt(I)}`}); out.push({l:'Distância',v:'0 (concorrentes)'}); } }
+  else if(k==='reta-plano'){ const A=ga.A,u=ga.u,n=gb.n,d0=gb.d,un=u.dot(n); let rel;
+    if(Math.abs(un)<1e-6){ rel=Math.abs(n.dot(A)-d0)<1e-4?'reta contida no plano':'paralela (sem interseção)'; }
+    else { rel='concorrente (fura o plano)'; const tt=(d0-n.dot(A))/un,I=A.clone().addScaledVector(u,tt); out.push({l:'Interseção',t:`I=${vt(I)}`}); }
+    out.unshift({l:'Posição relativa',v:rel});
+    out.push({l:'Ângulo',t:`\\sin\\theta=\\frac{|\\vec u\\cdot\\vec n|}{|\\vec u||\\vec n|}\\Rightarrow\\theta=${degS(un/((u.length()*n.length())||1))}^\\circ`}); }
+  else if(k==='plano-plano'){ const n1=ga.n,d1=ga.d,n2=gb.n,d2=gb.d,m=n1.clone().cross(n2),par=m.length()<1e-6;
+    if(par){ const i=Math.abs(n1.x)>1e-6?'x':(Math.abs(n1.y)>1e-6?'y':'z'); const s=n2[i]/n1[i]; const coinc=Math.abs(d2-s*d1)<1e-3;
+      out.push({l:'Posição relativa',v: coinc?'coincidentes':'paralelos distintos'});
+      if(!coinc){ const P1=n1.clone().multiplyScalar(d1/n1.lengthSq()); const dist=Math.abs(n2.dot(P1)-d2)/n2.length(); out.push({l:'Distância',t:`d=\\frac{|d_2-\\vec{n_2}\\cdot P_1|}{|\\vec{n_2}|}=${fmt(dist)}`}); } }
+    else { out.push({l:'Posição relativa',v:'concorrentes (interseção = reta)'});
+      const P0=(n2.clone().cross(m).multiplyScalar(d1)).add(m.clone().cross(n1).multiplyScalar(d2)).multiplyScalar(1/m.lengthSq());
+      out.push({l:'Interseção (reta)',t:`X=${vt(P0)}+t\\,${vt(m.clone().normalize())}`}); }
+    out.push({l:'Ângulo',t:`\\cos\\theta=\\frac{|\\vec{n_1}\\cdot\\vec{n_2}|}{|\\vec{n_1}||\\vec{n_2}|}\\Rightarrow\\theta=${degC(Math.abs(n1.dot(n2))/((n1.length()*n2.length())||1))}^\\circ`}); }
+  return out;
+}
+function showInter(){ const box=$('inter'); box.innerHTML=''; $('mistoRow').style.display='none'; const b=elements.find(e=>e.id===$('elemB').value);
+  if(!sel||!b){ box.innerHTML='<span class="muted">Escolha dois elementos.</span>'; return; }
+  if(sel===b){ box.innerHTML='<span class="muted">Escolha elementos diferentes.</span>'; return; }
+  const list=interacoes(sel,b);
+  if(!list){ box.innerHTML='<span class="muted">Sem interações para esse par. Vetores interagem só com ponto/vetor/reta/plano; cônicas e quádricas interagem com ponto, reta, plano e entre si.</span>'; return; }
+  if(!list.length){ box.innerHTML='<span class="muted">Sem interação para esse par.</span>'; return; }
+  list.forEach(it=>{ const row=document.createElement('div'); row.className='kf';
+    const lab=document.createElement('div'); lab.className='muted'; lab.style.fontSize='11px'; lab.textContent=it.l; row.appendChild(lab);
+    const s=document.createElement('div'); if(it.t){ try{ katex.render(it.t,s,{throwOnError:false}); }catch(e){ s.textContent=it.t; } } else s.textContent=it.v; row.appendChild(s);
+    box.appendChild(row); });
+  // produto misto (3 vetores)
+  const bothVec = sel.geo.kind==='vetor' && b.geo.kind==='vetor';
+  $('mistoRow').style.display = bothVec?'flex':'none';
+  if(bothVec){ const C=$('elemC'); const cur=C.value; C.innerHTML='<option value="">—</option>';
+    elements.filter(e=>e.geo&&e.geo.kind==='vetor'&&e!==sel&&e!==b).forEach(e=>{ const o=document.createElement('option'); o.value=e.id; o.textContent=SCHEMAS[e.type].n; C.appendChild(o); });
+    if(cur&&C.querySelector(`option[value="${cur}"]`))C.value=cur;
+    const c=elements.find(e=>e.id===C.value);
+    if(c){ const u=sel.geo.v,v=b.geo.v,w=c.geo.v,m=u.clone().cross(v).dot(w);
+      [['Produto misto [u,v,w]',`(\\vec u\\times\\vec v)\\cdot\\vec w=${fmt(m)}`],['Volume do paralelepípedo',`V=|[\\vec u,\\vec v,\\vec w]|=${fmt(Math.abs(m))}`]].forEach(([l,t])=>{ const row=document.createElement('div'); row.className='kf'; const lab=document.createElement('div'); lab.className='muted'; lab.style.fontSize='11px'; lab.textContent=l; row.appendChild(lab); const s=document.createElement('div'); try{katex.render(t,s,{throwOnError:false});}catch(e){s.textContent=t;} row.appendChild(s); box.appendChild(row); }); } }
+}
+$('elemB').onchange=showInter;
+$('elemC').onchange=showInter;
+
+function refresh(){ const L=$('lista'); L.innerHTML=''; const B=$('elemB'); const curB=B.value; B.innerHTML='<option value="">—</option>';
+  elements.forEach(el=>{ const hex='#'+el.color.toString(16).padStart(6,'0');
+   const row=document.createElement('div'); row.className='item'+(sel===el?' sel':'');
+   row.innerHTML=`<span class="dot" style="background:${hex}"></span><span class="nm">${SCHEMAS[el.type].n}</span><button class="x">✕</button>`;
+   row.onclick=e=>{ if(e.target.classList.contains('x')){ removeEl(el); } else { sel=el; props(el); refresh(); showInter(); } };
+   L.appendChild(row);
+   const o=document.createElement('option'); o.value=el.id; o.textContent=SCHEMAS[el.type].n; B.appendChild(o); });
+  if(curB && B.querySelector(`option[value="${curB}"]`)) B.value=curB;
+  props(sel); showInter(); }
+
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(elements.map(e=>({type:e.type,P:e.P,color:e.color,eq:e.eq})))); }catch(e){} }
+function load(){ let a=[]; try{ a=JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){} a.forEach(o=>addEl(o.type,o.P||{},o.color,o.eq)); ci=Math.max(ci,elements.length); refresh(); }
+load();
+
+addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
+function animate(){ requestAnimationFrame(animate); controls.update(); positionPopup(); gridMat.uniforms.uCam.value.copy(camera.position); renderer.render(scene,camera); }
+animate();
+</script>
+</body>
+</html>

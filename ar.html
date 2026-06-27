@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Modo AR — Geometria Analítica</title>
+<script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
+<style>
+  body { margin:0; font-family:system-ui,'Segoe UI',Roboto,sans-serif; }
+  #ui {
+    position:fixed; left:8px; right:8px; bottom:8px; z-index:30;
+    background:#1c222b; color:#dde2ea; border:1px solid #2b3340;
+    border-radius:12px; padding:10px 12px; font-size:13px;
+  }
+  #ui .row { display:flex; align-items:center; gap:8px; margin:4px 0; }
+  #ui input[type=range]{ flex:1; }
+  #ui .val{ min-width:40px; text-align:right; color:#8a93a2; font-variant-numeric:tabular-nums; }
+  #ui .top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  a.back{ color:#5784b4; text-decoration:none; font-size:12px; }
+  #hint{
+    position:fixed; top:8px; left:8px; right:8px; z-index:30; text-align:center;
+    background:#1c222b; color:#8a93a2; border-radius:10px; padding:8px; font-size:12px;
+  }
+</style>
+</head>
+<body style="margin:0;overflow:hidden;">
+
+<div id="hint">Aponte a câmera para o <b>marcador Hiro</b> (veja o index). Os eixos e o projétil aparecem sobre ele.</div>
+
+<a-scene embedded vr-mode-ui="enabled: false"
+         arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono;"
+         renderer="logarithmicDepthBuffer: true; precision: medium;">
+  <a-marker preset="hiro">
+    <a-entity id="viz" geometria-projetil="v0: 8; angulo: 55; azimute: 25; g: 9.8"></a-entity>
+  </a-marker>
+  <a-entity camera></a-entity>
+</a-scene>
+
+<div id="ui">
+  <div class="top">
+    <a class="back" href="index.html">← voltar</a>
+    <span><b>Projétil em AR</b></span>
+    <button id="play" style="background:#3c6291;color:#ffffff;border:0;border-radius:8px;padding:5px 10px;font-weight:600;">Pausar</button>
+  </div>
+  <div class="row">v₀ <input type="range" id="v0" min="1" max="12" step="0.1" value="8"><span class="val" id="v0v">8.0</span></div>
+  <div class="row">θ° <input type="range" id="th" min="5" max="85" step="1" value="55"><span class="val" id="thv">55</span></div>
+  <div class="row">φ° <input type="range" id="ph" min="0" max="90" step="1" value="25"><span class="val" id="phv">25</span></div>
+</div>
+
+<script>
+AFRAME.registerComponent('geometria-projetil', {
+  schema: { v0:{default:8}, angulo:{default:55}, azimute:{default:25}, g:{default:9.8} },
+  init(){
+    this.playing = true;
+    this.group = new THREE.Group();
+    this.group.scale.set(0.06,0.06,0.06);   // 10 m cabem perto do marcador
+    this.el.setObject3D('viz', this.group);
+    this.ball = new THREE.Mesh(new THREE.SphereGeometry(0.18,16,16),
+                               new THREE.MeshBasicMaterial({color:0xff8a3d}));
+    this.group.add(this.ball);
+    this.t = 0;
+    this.build();
+  },
+  update(){ this.build(); },
+  build(){
+    // limpa tudo menos a bola
+    for(let i=this.group.children.length-1;i>=0;i--){
+      const c=this.group.children[i];
+      if(c!==this.ball){ this.group.remove(c); }
+    }
+    const d=this.data;
+    const th=d.angulo*Math.PI/180, ph=d.azimute*Math.PI/180, g=d.g, v0=d.v0;
+    const axis=(x,y,z,color)=>new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(x,y,z)]),
+      new THREE.LineBasicMaterial({color}));
+    this.group.add(axis(8,0,0,0xff5a5a), axis(0,6,0,0x5aff7a), axis(0,0,8,0x5a9bff));
+    this.T=2*v0*Math.sin(th)/g;
+    this.vx=v0*Math.cos(th)*Math.cos(ph);
+    this.vz=v0*Math.cos(th)*Math.sin(ph);
+    this.vy=v0*Math.sin(th); this.g=g;
+    const pts=[]; for(let i=0;i<=60;i++){ const t=this.T*i/60; pts.push(new THREE.Vector3(this.vx*t, this.vy*t-0.5*g*t*t, this.vz*t)); }
+    this.group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+                                  new THREE.LineBasicMaterial({color:0xff8a3d})));
+    this.t=0;
+  },
+  tick(time, dt){
+    if(!this.T || !this.playing) return;
+    this.t += (dt/1000)*0.8;
+    if(this.t>this.T) this.t=0;
+    this.ball.position.set(this.vx*this.t, Math.max(0, this.vy*this.t-0.5*this.g*this.t*this.t), this.vz*this.t);
+  }
+});
+
+const viz=document.getElementById('viz');
+const set=(k,el,disp)=>{ document.getElementById(disp).textContent=el.value; viz.setAttribute('geometria-projetil', k, el.value); };
+v0.addEventListener('input',()=>set('v0',v0,'v0v'));
+th.addEventListener('input',()=>set('angulo',th,'thv'));
+ph.addEventListener('input',()=>set('azimute',ph,'phv'));
+document.getElementById('play').addEventListener('click',e=>{
+  const comp=viz.components['geometria-projetil'];
+  comp.playing=!comp.playing; e.target.textContent=comp.playing?'Pausar':'Tocar';
+});
+</script>
+</body>
+</html>

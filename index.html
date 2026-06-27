@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geopsic — Ferramentas</title>
+<style>
+  :root { --acc:#5784b4; --acc2:#5784b4; --card:#1c222b; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+         font-family:system-ui,'Segoe UI',Roboto,sans-serif; background:#15191f; color:#dde2ea; padding:24px; }
+  h1 { font-size:26px; margin:0 0 4px; } .sub { color:#8a93a2; margin:0 0 28px; text-align:center; }
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:18px; width:100%; max-width:680px; }
+  @media (max-width:560px){ .cards{ grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid #2b3340; border-radius:18px; padding:30px 22px; text-decoration:none; color:inherit; text-align:center; transition:transform .12s, border-color .12s; }
+  .card:hover { transform:translateY(-4px); border-color:var(--acc); }
+  .card h2 { margin:12px 0 6px; font-size:21px; }
+  .card.g h2 { color:var(--acc); } .card.f h2 { color:var(--acc2); }
+  .card p { margin:0; font-size:13px; color:#8a93a2; }
+  .foot { margin-top:26px; color:#8a93a2; font-size:12px; text-align:center; }
+</style>
+</head>
+<body>
+  <h1>Geopsic</h1>
+  <p class="sub">Escolha a ferramenta.</p>
+  <div class="cards">
+    <a class="card g" href="geometria.html">
+      <h2>Geometria Analítica</h2>
+      <p>Pontos, vetores, retas, planos, cônicas e quádricas.<br>Propriedades e interações (distâncias, ângulos).</p>
+    </a>
+    <a class="card f" href="fisica.html?modo=3d">
+      <h2>Física</h2>
+      <p>Corpos com massa e Leis de Newton.<br>Gravidade, atrito, colisões e vetores de força.</p>
+    </a>
+  </div>
+</body>
+</html>

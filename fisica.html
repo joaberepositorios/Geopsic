@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Geopsic — Espaço de trabalho</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.1/lib/browser/math.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+  :root {
+    --acc:#5784b4; --acc2:#5784b4;
+    --panel:#1c222b; --line:#2b3340; --line2:#2b3340;
+    --txt:#dde2ea; --muted:#8a93a2; --field:#11151c;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; overflow:hidden; color:var(--txt);
+    font-family:'Inter',system-ui,'Segoe UI',Roboto,sans-serif;
+    background:#15191f; }
+  #app { position:fixed; inset:0; }
+  canvas { display:block; }
+  .glass { background:var(--panel); border:1px solid var(--line); }
+
+  #bar { position:absolute; top:14px; left:14px; z-index:10; display:flex; align-items:center; gap:10px; border-radius:14px; padding:9px 14px; font-size:13px; }
+  #bar a { color:var(--acc); text-decoration:none; font-weight:600; }
+  #bar a:hover { filter:brightness(1.15); }
+  #bar .sep { width:1px; height:16px; background:var(--line); }
+  #bar .title { font-weight:700; letter-spacing:.3px; }
+  #bar .badge { font-weight:700; padding:3px 11px; border-radius:999px; background:#262e3a; font-size:12px; }
+  #bar .badge.d2 { color:var(--acc); } #bar .badge.d3 { color:var(--acc2); }
+
+  #coords { position:absolute; top:16px; left:50%; transform:translateX(-50%); z-index:10; display:none;
+    border-radius:999px; padding:8px 20px; font-family:ui-monospace,Consolas,monospace; font-size:13px; letter-spacing:.3px; white-space:nowrap; }
+  #coords b { color:#dde2ea; font-weight:700; } #coords .u { color:var(--muted); }
+
+  #tools { position:absolute; top:64px; left:14px; width:312px; max-height:calc(100% - 80px); overflow-y:auto;
+    border-radius:16px; padding:14px 16px; font-size:13px; z-index:10; display:none; }
+  #tools::-webkit-scrollbar { width:8px; } #tools::-webkit-scrollbar-thumb { background:#3a4452; border-radius:8px; }
+  #tools h1 { font-size:15px; margin:2px 0 10px; display:flex; align-items:center; gap:8px; justify-content:space-between; }
+  #tools .sec { border-top:1px solid var(--line2); padding:12px 0 4px; margin-top:10px; }
+  #tools h2 { font-size:11px; color:var(--muted); margin:0 0 9px; text-transform:uppercase; letter-spacing:.7px; }
+
+  .shapes { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+  .shape { background:#262e3a; border:1px solid var(--line); border-radius:12px; padding:11px; cursor:pointer; color:#cdd5e1; display:flex; align-items:center; justify-content:center; transition:.15s; }
+  .shape:hover { background:#2f3947; transform:translateY(-1px); }
+  .shape svg { width:30px; height:30px; }
+  .shape.on { background:#3c6291; border-color:#5784b4; color:#fff; box-shadow:none; }
+
+  label.row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:9px 0 2px; color:var(--muted); }
+  .numin { width:100px; background:var(--field); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:7px 9px; }
+  .numin:focus, .loc input:focus, .eqin:focus, .mini:focus { outline:none; border-color:var(--acc); }
+
+  button.act { background:#3c6291; color:#fff; border:0; border-radius:10px; padding:11px 12px; font-weight:700; cursor:pointer; width:100%; margin-top:10px; box-shadow:none; transition:.15s; }
+  button.act:hover { background:#4774a8; }
+  button.sec-btn { flex:1; background:#262e3a; color:#cdd5e1; border:1px solid var(--line); border-radius:9px; padding:9px; cursor:pointer; transition:.15s; }
+  button.sec-btn:hover { background:#2f3947; color:#dde2ea; }
+  .hintbox { background:#222a36; border:1px solid #2b3340; border-radius:10px; padding:9px 10px; color:#9fb0c4; margin:4px 0 10px; line-height:1.45; }
+
+  .loc { display:flex; gap:9px; margin:10px 0 4px; }
+  .loc label { flex:1; display:flex; flex-direction:column; gap:5px; font-size:12px; }
+  .loc .ax { font-weight:800; font-size:13px; }
+  .loc input { width:100%; background:var(--field); color:var(--txt); border:1px solid var(--line); border-radius:9px; padding:8px; font-family:ui-monospace,Consolas,monospace; }
+  .loc input:disabled { opacity:.4; }
+
+  .tabs { display:flex; gap:8px; margin:2px 0 10px; }
+  .tab { flex:1; background:#262e3a; border:1px solid var(--line); color:#cdd5e1; border-radius:9px; padding:8px; font-weight:600; cursor:pointer; font-size:12px; }
+  .tab.on { background:#3c6291; color:#fff; border-color:#5784b4; }
+  .eqin { width:100%; background:var(--field); color:var(--txt); border:1px solid var(--line); border-radius:10px; padding:10px; font-family:ui-monospace,Consolas,monospace; font-size:13px; }
+  .exs { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+  .ex { background:#262e3a; border:1px solid var(--line); color:#cdd5e1; border-radius:8px; padding:4px 8px; font-size:11px; cursor:pointer; font-family:ui-monospace,Consolas,monospace; }
+  .ex:hover { background:#2f3947; }
+  #eqPreview { min-height:20px; margin:9px 2px 4px; color:#e6eeff; font-size:16px; overflow-x:auto; overflow-y:hidden; }
+  #eqPreview:empty { display:none; }
+  .item .nm.tex { font-size:14px; overflow:hidden; }
+  .katex { font-size:1em; }
+  .fmods { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin:8px 0; }
+  .fmod { background:#262e3a; border:1px solid var(--line); color:#cdd5e1; border-radius:9px; padding:8px 6px; cursor:pointer; font-size:12px; }
+  .fmod:hover { background:#2f3947; }
+  .fmod.on { background:#3c6291; color:#fff; border-color:#5784b4; font-weight:700; }
+  #fReadout { white-space:pre-line; line-height:1.7; }
+  #fisicaPanel { position:absolute; top:64px; right:14px; width:294px; max-height:calc(100% - 80px); overflow-y:auto; border-radius:16px; padding:14px 16px; font-size:13px; z-index:10; display:none; }
+  #fisicaPanel::-webkit-scrollbar { width:8px; } #fisicaPanel::-webkit-scrollbar-thumb { background:#3a4452; border-radius:8px; }
+  #fisicaPanel h1 { font-size:15px; margin:2px 0 10px; }
+  #fisicaPanel h2 { font-size:11px; color:var(--muted); margin:14px 0 8px; text-transform:uppercase; letter-spacing:.7px; }
+  @media (max-width:760px){ #fisicaPanel{ width:260px; } }
+  select.numin option { background:#1c222b; color:#dde2ea; }
+  #objModal { position:absolute; z-index:20; width:202px; padding:10px 12px; border-radius:13px; font-size:12px; }
+  #objModal .om-head { display:flex; justify-content:space-between; align-items:center; font-weight:700; margin-bottom:8px; color:#dde2ea; }
+  #objModal .om-head button { background:none; border:0; color:#d09a9a; cursor:pointer; font-size:13px; }
+  #objModal .om-row { display:flex; align-items:center; gap:8px; margin:6px 0; color:var(--muted); }
+  #objModal .om-row input[type=range] { flex:1; }
+  #objModal .omv { min-width:34px; text-align:right; color:#8a93a2; font-variant-numeric:tabular-nums; }
+  #objModal .om-phys { width:100%; margin-top:9px; background:#262e3a; border:1px solid var(--line); color:#cdd5e1; border-radius:9px; padding:8px; cursor:pointer; font-weight:600; }
+  #objModal .om-phys.on { background:#3c6291; color:#fff; border-color:#5784b4; }
+  .reta-row { display:flex; align-items:center; gap:5px; margin:6px 0; flex-wrap:wrap; font-family:ui-monospace,Consolas,monospace; }
+  .mini { width:46px; background:var(--field); color:var(--txt); border:1px solid var(--line); border-radius:6px; padding:5px; }
+
+  .list { display:flex; flex-direction:column; gap:6px; max-height:172px; overflow-y:auto; }
+  .list:empty::after { content:'Nada ainda.'; color:var(--muted); font-size:12px; }
+  .item { display:flex; align-items:center; gap:9px; background:#222a36; border:1px solid var(--line); border-radius:10px; padding:7px 10px; cursor:pointer; transition:.12s; }
+  .item:hover { background:#2f3947; }
+  .item.sel { border-color:#5784b4; background:#223047; }
+  .item .dot { width:12px; height:12px; border-radius:50%; flex:0 0 auto; }
+  .item .nm { font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .item .vv { margin-left:auto; color:var(--muted); font-size:12px; font-family:ui-monospace,Consolas,monospace; }
+  .item .eye, .item .x { background:none; border:0; cursor:pointer; font-size:13px; padding:2px 3px; line-height:1; }
+  .item .eye { margin-left:auto; } .item .x { color:#d09a9a; } .item .x:hover { color:#e0a0a0; }
+  #collapse { background:#262e3a; border:1px solid var(--line); color:#cdd5e1; border-radius:8px; width:28px; height:28px; cursor:pointer; font-size:18px; line-height:1; }
+  #collapse:hover { background:#2f3947; }
+  #toolsToggle { position:absolute; top:64px; left:14px; z-index:11; display:none; background:var(--panel); border:1px solid var(--line); color:#cdd5e1; border-radius:10px; padding:8px 11px; cursor:pointer; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="bar" class="glass">
+  <a href="index.html">← Menu</a>
+  <span class="sep"></span>
+  <span class="title">Geopsic</span>
+  <span class="badge" id="badge">3D</span>
+</div>
+
+<div id="coords" class="glass">X <b id="hudX">—</b> &nbsp; Y <b id="hudY">—</b> &nbsp; Z <b id="hudZ">—</b> &nbsp;<span class="u">cm</span></div>
+<button id="toolsToggle">Ferramentas</button>
+
+<div id="objModal" class="glass" style="display:none">
+  <div class="om-head"><span id="omName">Objeto</span><button id="omClose">✕</button></div>
+  <label class="om-row">Tamanho ×<input type="number" id="omScale" class="mini" step="0.1" min="0.05" value="1" style="width:62px"></label>
+  <label class="om-row">Âng X°<input type="number" id="omRX" class="mini" step="5" value="0" style="width:62px"></label>
+  <label class="om-row">Âng Y°<input type="number" id="omRY" class="mini" step="5" value="0" style="width:62px"></label>
+  <label class="om-row">Âng Z°<input type="number" id="omRZ" class="mini" step="5" value="0" style="width:62px"></label>
+  <button id="omPhys" class="om-phys">Física: OFF</button>
+</div>
+
+<div id="tools" class="glass">
+  <h1><span>Ferramentas</span><button id="collapse" title="Recolher">−</button></h1>
+
+  <div class="tabs" id="mainTabs">
+    <button class="tab on" id="tabModel">Modelagem</button>
+    <button class="tab" id="tabEq">Equações</button>
+    <button class="tab" id="tabSit">Situações</button>
+  </div>
+
+  <div id="modelSections">
+    <div class="sec">
+      <h2>Forma</h2>
+      <div class="shapes">
+        <button class="shape on" data-shape="cubo" title="Cubo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M4 7l8-4 8 4v10l-8 4-8-4z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg></button>
+        <button class="shape" data-shape="esfera" title="Esfera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8.5"/><ellipse cx="12" cy="12" rx="8.5" ry="3.2"/></svg></button>
+        <button class="shape" data-shape="cilindro" title="Cilindro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="5" rx="7" ry="2.6"/><path d="M5 5v14M19 5v14"/><ellipse cx="12" cy="19" rx="7" ry="2.6"/></svg></button>
+        <button class="shape" data-shape="cone" title="Cone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l8 16M12 3L4 19"/><ellipse cx="12" cy="19" rx="8" ry="2.6"/></svg></button>
+        <button class="shape" data-shape="piramide" title="Pirâmide"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l9 16H3z"/><path d="M12 3v16"/></svg></button>
+        <button class="shape" data-shape="toro" title="Toro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><ellipse cx="12" cy="12" rx="9.2" ry="5.2"/><ellipse cx="12" cy="12" rx="3.4" ry="1.7"/></svg></button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Propriedades do objeto</h2>
+      <div class="tabs" id="dimTabs">
+        <button class="tab on" id="modoVol">Por volume</button>
+        <button class="tab" id="modoDim">Por dimensões</button>
+      </div>
+      <div id="volBox"><label class="row">Volume (cm³) <input type="number" class="numin" id="vol" value="1000" min="1" step="50"></label></div>
+      <div id="dimBox" style="display:none"></div>
+      <label class="row">Massa (g) <input type="number" class="numin" id="mass" value="1000" min="0" step="50"></label>
+      <label class="row">Posição (cm)
+        <span style="display:flex; gap:4px">
+          <input class="mini" id="newX" value="0" title="X"><input class="mini" id="newY" value="" placeholder="chão" title="Y"><input class="mini" id="newZ" value="0" title="Z">
+        </span>
+      </label>
+      <button class="act" id="criar">Criar objeto</button>
+    </div>
+
+    <div class="sec">
+      <h2>Seleção &amp; localização</h2>
+      <div class="hintbox">Clique numa forma para <b>selecionar</b> e <b>arraste</b> para mover. Edite <b>X, Y, Z</b> (cm).</div>
+      <label class="row">Selecionado <span id="selName" style="color:#ffd24d">nenhum</span></label>
+      <div class="loc">
+        <label><span class="ax" style="color:#f87171">X</span><input type="number" id="locX" step="0.5" disabled></label>
+        <label><span class="ax" style="color:#34d399">Y</span><input type="number" id="locY" step="0.5" disabled></label>
+        <label><span class="ax" style="color:#60a5fa">Z</span><input type="number" id="locZ" step="0.5" disabled></label>
+      </div>
+      <div style="display:flex; gap:6px; margin-top:8px">
+        <button class="sec-btn" id="delSel">Deletar</button>
+        <button class="sec-btn" id="clear">Limpar tudo</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Objetos (<span id="count">0</span>)</h2>
+      <div id="list" class="list"></div>
+    </div>
+  </div>
+
+  <div class="sec" id="eqSection">
+    <h2>Equações (retas, cônicas, quádricas)</h2>
+    <div class="tabs" id="eqTypeRow" style="display:none">
+      <button class="tab on" id="eqTipoSurf">Superfície / plano</button>
+      <button class="tab" id="eqTipoReta">Reta</button>
+    </div>
+    <div id="eqSurfBox">
+      <input class="eqin" id="eqInput" placeholder="ex.: x^2 + y^2 + z^2 = 9">
+      <div id="eqPreview"></div>
+      <button class="act" id="eqPlot">Plotar equação</button>
+    </div>
+    <div id="eqRetaBox" style="display:none">
+      <div class="reta-row">P (<input class="mini" id="rPx" value="0">,<input class="mini" id="rPy" value="0">,<input class="mini" id="rPz" value="0">)</div>
+      <div class="reta-row">V (<input class="mini" id="rVx" value="1">,<input class="mini" id="rVy" value="1">,<input class="mini" id="rVz" value="1">)</div>
+      <button class="act" id="retaPlot">Plotar reta</button>
+    </div>
+    <div id="eqList" class="list" style="margin-top:10px"></div>
+  </div>
+
+  <div class="sec" id="sitSection" style="display:none">
+    <h2>Situações de física</h2>
+    <label class="row">Cenário <select id="sitTipo" class="numin" style="width:170px"></select></label>
+    <div id="sitParams"></div>
+    <div id="sitDesc" class="hintbox" style="margin-top:8px"></div>
+    <button class="act" id="sitBuild">Montar e iniciar cenário</button>
+    <button class="sec-btn" id="sitClear" style="width:100%; margin-top:6px">Limpar cenário</button>
+  </div>
+
+</div>
+
+<div id="fisicaPanel" class="glass">
+  <h1>Física — Leis de Newton</h1>
+  <div class="hintbox">Atua nos <b>objetos criados</b>. Ligue <b>Física ON</b> no modal do objeto para ele participar.</div>
+  <button class="act" id="fStart">Iniciar (objeto → origem 0,0,0)</button>
+  <label class="row">g (m/s²) <input type="number" class="numin" id="fG" value="9.8" step="0.1"></label>
+  <label class="row">atrito do solo μ <input type="number" class="numin" id="fMu" value="0.3" step="0.05"></label>
+  <label class="row">restituição e (quique) <input type="number" class="numin" id="fE" value="0.55" step="0.05"></label>
+  <label class="row">colisão entre objetos <input type="checkbox" id="fCol" checked></label>
+  <div style="display:flex; gap:6px; margin-top:8px">
+    <button class="sec-btn" id="fRun">Pausar</button>
+    <button class="sec-btn" id="fReset">Reiniciar</button>
+    <button class="sec-btn" id="fVec">Vetores: ON</button>
+  </div>
+  <label class="row">velocidade (×) <input type="number" class="numin" id="fSpeed" min="0.1" max="4" step="0.1" value="1" style="width:80px"></label>
+
+  <h2>Aplicações</h2>
+  <label class="row">Aplicar em <select id="fAlvo" class="numin" style="width:158px"></select></label>
+  <div class="reta-row">altura h <input class="mini" id="aH" value="12"><button class="sec-btn" id="aQueda">Queda livre</button></div>
+  <div class="reta-row">v₀ <input class="mini" id="aV0" value="12"> θ° <input class="mini" id="aAng" value="50"><button class="sec-btn" id="aLanc">Lançar</button></div>
+  <div class="reta-row">F (N) <input class="mini" id="aF" value="30"><button class="sec-btn" id="aPush">Empurrar →</button></div>
+  <button class="sec-btn" id="aToggle" style="width:100%; margin-top:6px">Tornar dinâmico/estático</button>
+  <div class="info" id="fReadout">—</div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+const $ = id => document.getElementById(id);
+
+const modo = new URLSearchParams(location.search).get('modo') === '2d' ? '2d' : '3d';
+const badge = $('badge'); badge.textContent = modo.toUpperCase();
+badge.className = 'badge ' + (modo === '2d' ? 'd2' : 'd3');
+
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight); $('app').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x15191f);
+scene.add(new THREE.HemisphereLight(0xbcd0ff, 0x141a2a, 0.65));
+scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+const dl = new THREE.DirectionalLight(0xffffff, 0.9); dl.position.set(6,12,8); scene.add(dl);
+const dl2 = new THREE.DirectionalLight(0x88aaff, 0.25); dl2.position.set(-8,5,-6); scene.add(dl2);
+
+function label(text, color='#ffffff'){
+  const c=document.createElement('canvas'); c.width=c.height=128;
+  const ctx=c.getContext('2d'); ctx.fillStyle=color; ctx.font='bold 80px sans-serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,64,64);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c), depthTest:false}));
+  sp.scale.set(0.7,0.7,0.7); return sp;
+}
+function longAxis(dir, color, name, labelAt){
+  const g=new THREE.Group(); const d=dir.clone().normalize();
+  const geo=new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-1000), d.clone().multiplyScalar(1000)]);
+  g.add(new THREE.Line(geo, new THREE.LineBasicMaterial({color})));
+  const lb=label(name,'#'+color.toString(16).padStart(6,'0')); lb.position.copy(d.clone().multiplyScalar(labelAt)); g.add(lb);
+  return g;
+}
+const gridVert=`varying vec2 vC; varying vec3 vW; void main(){ vC=position.xy; vec4 wp=modelMatrix*vec4(position,1.0); vW=wp.xyz; gl_Position=projectionMatrix*viewMatrix*wp; }`;
+const gridFrag=`precision highp float; varying vec2 vC; varying vec3 vW; uniform vec3 uCam; uniform float uSize; uniform float uFade; uniform vec3 uMinor; uniform vec3 uMajor;
+  float gf(vec2 c,float s){ vec2 a=c/s; vec2 g=abs(fract(a-0.5)-0.5)/fwidth(a); return 1.0-min(min(g.x,g.y),1.0); }
+  void main(){ float mi=gf(vC,uSize); float ma=gf(vC,uSize*10.0); float d=distance(vW,uCam); float f=1.0-smoothstep(uFade*0.35,uFade,d);
+    vec3 col=mix(uMinor,uMajor,ma); float ln=max(mi*0.9,ma); float al=max(ln,0.07)*f; if(al<0.004) discard; gl_FragColor=vec4(col,al); }`;
+function gradeInfinita(xy){
+  const mat=new THREE.ShaderMaterial({ uniforms:{ uCam:{value:new THREE.Vector3()}, uSize:{value:1.0}, uFade:{value:120.0},
+    uMinor:{value:new THREE.Color(0x6a80a8)}, uMajor:{value:new THREE.Color(0xa8c8f5)} },
+    vertexShader:gridVert, fragmentShader:gridFrag, transparent:true, depthWrite:false, side:THREE.DoubleSide, extensions:{derivatives:true} });
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000), mat); m.renderOrder=-1; if(!xy) m.rotation.x=-Math.PI/2;
+  return { mesh:m, mat };
+}
+
+let camera, controls, gridMat;
+if (modo === '2d') {
+  const g=gradeInfinita(true); scene.add(g.mesh); gridMat=g.mat;
+  scene.add(longAxis(new THREE.Vector3(1,0,0),0xf87171,'X',6));
+  scene.add(longAxis(new THREE.Vector3(0,1,0),0x34d399,'Y',6));
+  const f=14,a=innerWidth/innerHeight;
+  camera=new THREE.OrthographicCamera(-f*a/2,f*a/2,f/2,-f/2,0.1,8000); camera.position.set(0,0,10);
+  controls=new OrbitControls(camera, renderer.domElement);
+  controls.enableRotate=false; controls.screenSpacePanning=true;
+  controls.mouseButtons={LEFT:THREE.MOUSE.PAN,MIDDLE:THREE.MOUSE.DOLLY,RIGHT:THREE.MOUSE.PAN};
+  controls.touches={ONE:THREE.TOUCH.PAN,TWO:THREE.TOUCH.DOLLY_PAN};
+} else {
+  const g=gradeInfinita(false); scene.add(g.mesh); gridMat=g.mat;
+  scene.add(longAxis(new THREE.Vector3(1,0,0),0xf87171,'X',6));
+  scene.add(longAxis(new THREE.Vector3(0,1,0),0x34d399,'Y',5));
+  scene.add(longAxis(new THREE.Vector3(0,0,1),0x60a5fa,'Z',6));
+  camera=new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 8000); camera.position.set(14,11,18);
+  controls=new OrbitControls(camera, renderer.domElement); controls.enableDamping=true; controls.target.set(0,2,0);
+}
+
+// utilitários compartilhados (modelos + física) — declarados ANTES das chamadas de setup
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+const nomes={cubo:'Cubo',esfera:'Esfera',cilindro:'Cilindro',cone:'Cone',piramide:'Pirâmide',toro:'Toro'};
+function dimsFromVolume(shape,V){ const cb=Math.cbrt;
+  if(shape==='cubo'){ const L=cb(V); return {geo:new THREE.BoxGeometry(L,L,L),restY:L/2,sizeChar:L}; }
+  if(shape==='esfera'){ const r=cb(3*V/(4*Math.PI)); return {geo:new THREE.SphereGeometry(r,28,18),restY:r,sizeChar:2*r}; }
+  if(shape==='cilindro'){ const r=cb(V/(2*Math.PI)),h=2*r; return {geo:new THREE.CylinderGeometry(r,r,h,28),restY:h/2,sizeChar:Math.max(2*r,h)}; }
+  if(shape==='cone'){ const r=cb(3*V/(2*Math.PI)),h=2*r; return {geo:new THREE.ConeGeometry(r,h,28),restY:h/2,sizeChar:Math.max(2*r,h)}; }
+  if(shape==='piramide'){ const b=cb(3*V),h=b,R=b/Math.SQRT2; return {geo:new THREE.ConeGeometry(R,h,4),restY:h/2,sizeChar:Math.max(b,h)}; }
+  if(shape==='toro'){ const R=cb(9*V/(2*Math.PI*Math.PI)),rt=R/3; return {geo:new THREE.TorusGeometry(R,rt,16,32),restY:rt,sizeChar:2*(R+rt)}; }
+  return {geo:new THREE.SphereGeometry(2,24,16),restY:2,sizeChar:4};
+}
+// dimensões editáveis por forma: [chave, rótulo, padrão] (cm)
+const DIMSPEC={
+  cubo:[['L','lado L',10]],
+  esfera:[['r','raio r',6.2]],
+  cilindro:[['r','raio r',5.4],['h','altura h',10.8]],
+  cone:[['r','raio r',7.8],['h','altura h',15.6]],
+  piramide:[['b','base b',14.4],['h','altura h',14.4]],
+  toro:[['R','raio R',8.3],['rt','tubo rt',2.8]]
+};
+// dims canônicas a partir do volume (mantém as proporções do criador antigo)
+function dimsForVolume(shape,V){ const cb=Math.cbrt;
+  if(shape==='cubo')   return {L:cb(V)};
+  if(shape==='esfera') return {r:cb(3*V/(4*Math.PI))};
+  if(shape==='cilindro'){ const r=cb(V/(2*Math.PI)); return {r,h:2*r}; }
+  if(shape==='cone'){ const r=cb(3*V/(2*Math.PI)); return {r,h:2*r}; }
+  if(shape==='piramide'){ const b=cb(3*V); return {b,h:b}; }
+  if(shape==='toro'){ const R=cb(9*V/(2*Math.PI*Math.PI)); return {R,rt:R/3}; }
+  return {r:cb(3*V/(4*Math.PI))};
+}
+// geometria + métricas a partir das dimensões digitadas
+function geoFor(shape,d){ const PI=Math.PI;
+  if(shape==='cubo'){ const L=Math.max(.1,d.L); return {geo:new THREE.BoxGeometry(L,L,L),restY:L/2,sizeChar:L,vol:L*L*L}; }
+  if(shape==='esfera'){ const r=Math.max(.1,d.r); return {geo:new THREE.SphereGeometry(r,28,18),restY:r,sizeChar:2*r,vol:4/3*PI*r*r*r}; }
+  if(shape==='cilindro'){ const r=Math.max(.1,d.r),h=Math.max(.1,d.h); return {geo:new THREE.CylinderGeometry(r,r,h,28),restY:h/2,sizeChar:Math.max(2*r,h),vol:PI*r*r*h}; }
+  if(shape==='cone'){ const r=Math.max(.1,d.r),h=Math.max(.1,d.h); return {geo:new THREE.ConeGeometry(r,h,28),restY:h/2,sizeChar:Math.max(2*r,h),vol:PI*r*r*h/3}; }
+  if(shape==='piramide'){ const b=Math.max(.1,d.b),h=Math.max(.1,d.h); return {geo:new THREE.ConeGeometry(b/Math.SQRT2,h,4),restY:h/2,sizeChar:Math.max(b,h),vol:b*b*h/3}; }
+  if(shape==='toro'){ const R=Math.max(.1,d.R),rt=Math.max(.05,d.rt); return {geo:new THREE.TorusGeometry(R,rt,16,32),restY:rt,sizeChar:2*(R+rt),vol:2*PI*PI*R*rt*rt}; }
+  return {geo:new THREE.SphereGeometry(2,24,16),restY:2,sizeChar:4,vol:33.5};
+}
+function makeLabel(color){ const c=document.createElement('canvas'); c.width=256;c.height=64; const tex=new THREE.CanvasTexture(c);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,transparent:true})); sp.scale.set(2.6,0.66,1);
+  sp.userData={c,ctx:c.getContext('2d'),tex,color:'#'+color.toString(16).padStart(6,'0')}; return sp; }
+function setLabel(sp,text){ const u=sp.userData; u.ctx.clearRect(0,0,u.c.width,u.c.height); u.ctx.fillStyle=u.color; u.ctx.font='bold 40px sans-serif'; u.ctx.textAlign='center'; u.ctx.textBaseline='middle'; u.ctx.fillText(text,u.c.width/2,u.c.height/2); u.tex.needsUpdate=true; }
+let fisicaTick=null, fisicaShow=null, fisicaStage=null, modelosTick=null, getModelos=null;
+let criarModelo=null, limparModelos=null, selecionarModelo=null, fisicaReset=null, fisicaStart=null, fisicaMarkInit=null;
+
+// painel (comum aos dois modos)
+$('tools').style.display='block';
+$('toolsToggle').style.display='none';
+$('toolsToggle').onclick=()=>{ $('tools').style.display='block'; $('toolsToggle').style.display='none'; };
+$('collapse').onclick=()=>{ $('tools').style.display='none'; $('toolsToggle').style.display='block'; };
+function showSection(which){
+  $('modelSections').style.display = which==='model'?'block':'none';
+  $('eqSection').style.display = which==='eq'?'block':'none';
+  $('sitSection').style.display = which==='sit'?'block':'none';
+  $('tabModel').classList.toggle('on', which==='model');
+  $('tabEq').classList.toggle('on', which==='eq');
+  $('tabSit').classList.toggle('on', which==='sit');
+  $('coords').style.display = (which==='model' && modo==='3d') ? 'block' : 'none';
+}
+$('tabModel').onclick=()=>showSection('model');
+$('tabEq').onclick=()=>showSection('eq');
+$('tabSit').onclick=()=>showSection('sit');
+
+if(modo==='3d'){ setupModelos(); setupEquacoes(modo); setupFisica(); setupSituacoes(); showSection('model'); }
+else { $('mainTabs').style.display='none'; setupEquacoes(modo); showSection('eq'); }
+
+// =================== utilidades de malha ===================
+function v_sub(a,b){return[a[0]-b[0],a[1]-b[1],a[2]-b[2]];}
+function v_cross(a,b){return[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];}
+function v_dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+function v_norm(a){const l=Math.hypot(a[0],a[1],a[2])||1;return[a[0]/l,a[1]/l,a[2]/l];}
+
+// Marching squares -> segmentos [x,y] (consecutivos = um segmento)
+function marchSquares(F, R, N){
+  const co=i=>-R+(2*R)*i/N; const S=N+1;
+  const g=new Float64Array(S*S); const id=(i,j)=>i+S*j;
+  for(let j=0;j<S;j++) for(let i=0;i<S;i++){ const v=F(co(i),co(j)); g[id(i,j)]=isFinite(v)?v:NaN; }
+  const segs=[]; const corners=[[0,0],[1,0],[1,1],[0,1]], edges=[[0,1],[1,2],[2,3],[3,0]];
+  for(let j=0;j<N;j++) for(let i=0;i<N;i++){
+    const ci=[[i,j],[i+1,j],[i+1,j+1],[i,j+1]];
+    const v=ci.map(([a,b])=>g[id(a,b)]);
+    const pts=[];
+    for(const [a,b] of edges){ const va=v[a],vb=v[b];
+      if(isFinite(va)&&isFinite(vb)&&((va<0)!==(vb<0))){ const t=va/(va-vb);
+        const pa=[co(ci[a][0]),co(ci[a][1])], pb=[co(ci[b][0]),co(ci[b][1])];
+        pts.push([pa[0]+t*(pb[0]-pa[0]), pa[1]+t*(pb[1]-pa[1])]); } }
+    if(pts.length===2) segs.push(pts[0],pts[1]);
+    else if(pts.length===4){ segs.push(pts[0],pts[1]); segs.push(pts[2],pts[3]); }
+  }
+  return segs;
+}
+// Marching tetrahedra -> array plano de posições (triângulos)
+function marchTet(F, R, N){
+  const co=i=>-R+(2*R)*i/N; const S=N+1;
+  const field=new Float32Array(S*S*S);
+  const id=(i,j,k)=>i+S*(j+S*k);
+  for(let k=0;k<S;k++) for(let j=0;j<S;j++) for(let i=0;i<S;i++){ const val=F(co(i),co(j),co(k)); field[id(i,j,k)]=isFinite(val)?val:NaN; }
+  const out=[];
+  const cc=[[0,0,0],[1,0,0],[1,1,0],[0,1,0],[0,0,1],[1,0,1],[1,1,1],[0,1,1]];
+  const tets=[[0,5,1,6],[0,1,2,6],[0,2,3,6],[0,3,7,6],[0,7,4,6],[0,4,5,6]];
+  const te=[[0,1],[1,2],[2,0],[0,3],[1,3],[2,3]];
+  for(let k=0;k<N;k++) for(let j=0;j<N;j++) for(let i=0;i<N;i++){
+    const cp=[],cv=[];
+    for(let c=0;c<8;c++){ const o=cc[c]; const ci=i+o[0],cj=j+o[1],ck=k+o[2]; cp.push([co(ci),co(cj),co(ck)]); cv.push(field[id(ci,cj,ck)]); }
+    for(const t of tets){
+      const p=[cp[t[0]],cp[t[1]],cp[t[2]],cp[t[3]]], v=[cv[t[0]],cv[t[1]],cv[t[2]],cv[t[3]]];
+      if(!isFinite(v[0])||!isFinite(v[1])||!isFinite(v[2])||!isFinite(v[3])) continue;
+      const pts=[];
+      for(const [a,b] of te){ if((v[a]<0)!==(v[b]<0)){ const tt=v[a]/(v[a]-v[b]);
+        pts.push([p[a][0]+tt*(p[b][0]-p[a][0]), p[a][1]+tt*(p[b][1]-p[a][1]), p[a][2]+tt*(p[b][2]-p[a][2])]); } }
+      if(pts.length===3){ out.push(...pts[0],...pts[1],...pts[2]); }
+      else if(pts.length===4){ const o=orderQuad(pts); out.push(...o[0],...o[1],...o[2]); out.push(...o[0],...o[2],...o[3]); }
+    }
+  }
+  return out;
+}
+function orderQuad(pts){
+  const c=[(pts[0][0]+pts[1][0]+pts[2][0]+pts[3][0])/4,(pts[0][1]+pts[1][1]+pts[2][1]+pts[3][1])/4,(pts[0][2]+pts[1][2]+pts[2][2]+pts[3][2])/4];
+  let n=v_norm(v_cross(v_sub(pts[1],pts[0]), v_sub(pts[2],pts[0])));
+  let ax=v_norm(v_sub(pts[0],c)); let ay=v_cross(n,ax);
+  const ang=pts.map(p=>{const d=v_sub(p,c);return Math.atan2(v_dot(d,ay),v_dot(d,ax));});
+  return [0,1,2,3].sort((A,B)=>ang[A]-ang[B]).map(i=>pts[i]);
+}
+
+// =================== EQUAÇÕES ===================
+function setupEquacoes(modo){
+  const is3D=modo==='3d';
+  const KEYEQ=is3D?'geopsic_eq_3d':'geopsic_eq_2d';
+  const palette=[0xffd166,0x06d6a0,0xef476f,0x4cc9f0,0xb388ff,0xff924c,0x80ed99];
+  const plots=[]; let ci=0;
+
+  let editing=null;
+  $('eqInput').placeholder = is3D ? 'ex.: x^2 + y^2 + z^2 = 9' : 'ex.: x^2/4 + y^2 = 1';
+
+  if(is3D){
+    $('eqTypeRow').style.display='flex';
+    $('eqTipoSurf').onclick=()=>{ $('eqTipoSurf').classList.add('on'); $('eqTipoReta').classList.remove('on'); $('eqSurfBox').style.display='block'; $('eqRetaBox').style.display='none'; };
+    $('eqTipoReta').onclick=()=>{ $('eqTipoReta').classList.add('on'); $('eqTipoSurf').classList.remove('on'); $('eqSurfBox').style.display='none'; $('eqRetaBox').style.display='block'; };
+  }
+
+  // ---- formato real (LaTeX via KaTeX) ----
+  function tex(expr){ try{ return String(expr).split('=').map(s=>math.parse(s).toTex()).join('='); }catch(e){ return null; } }
+  function renderTex(el, expr){ const t=tex(expr); if(t && window.katex){ try{ katex.render(t, el, {throwOnError:false, displayMode:false}); return; }catch(e){} } el.textContent=expr; }
+  function preview(){ const s=$('eqInput').value.trim(); if(!s){ $('eqPreview').innerHTML=''; return; } renderTex($('eqPreview'), s); }
+  $('eqInput').addEventListener('input', preview);
+
+  function makeF(input){
+    const s=(input||'').trim(); if(!s) return null;
+    const eq=s.split('='); const fstr = eq.length===2 ? `(${eq[0]})-(${eq[1]})` : s;
+    let code; try{ code=math.parse(fstr).compile(); }catch(e){ return null; }
+    return is3D ? (x,y,z)=>{ try{ return code.evaluate({x,y,z}); }catch(e){ return NaN; } }
+                : (x,y)=>{ try{ return code.evaluate({x,y,z:0}); }catch(e){ return NaN; } };
+  }
+  function isLinear2D(F){
+    const f0=F(0,0); if(!isFinite(f0)) return false;
+    for(const [ax,ay,bx,by] of [[1,0,0,1],[2,1,-1,2],[1.3,-0.7,0.6,1.1]]){
+      const r=F(ax+bx,ay+by)-F(ax,ay)-F(bx,by)+f0; if(!isFinite(r)||Math.abs(r)>1e-6) return false;
+    }
+    return true;
+  }
+  function colorFor(rec){
+    if(rec.type==='line') return 0xffffff;                 // retas brancas
+    if(rec.type==='curve'){ const F=makeF(rec.expr); if(F && isLinear2D(F)) return 0xffffff; }
+    return rec.color;
+  }
+  function buildObj(rec){
+    if(rec.type==='curve'){
+      const F=makeF(rec.expr); if(!F) return null;
+      const segs=marchSquares(F, 40, 380); const pos=[]; for(const [x,y] of segs) pos.push(x,y,0.03);
+      if(!pos.length) return null;
+      const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+      return new THREE.LineSegments(geo, new THREE.LineBasicMaterial({color:rec.color}));
+    }
+    if(rec.type==='surf'){
+      const F=makeF(rec.expr); if(!F) return null;
+      const tris=marchTet(F, 16, 56); if(!tris.length) return null;
+      const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.Float32BufferAttribute(tris,3)); geo.computeVertexNormals();
+      return new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:rec.color, roughness:.4, metalness:.05, side:THREE.DoubleSide, transparent:true, opacity:.92}));
+    }
+    if(rec.type==='line'){
+      const p=new THREE.Vector3(...rec.P); let v=new THREE.Vector3(...rec.V); if(v.length()<1e-6) v.set(1,0,0); v.normalize();
+      const geo=new THREE.BufferGeometry().setFromPoints([p.clone().addScaledVector(v,-1000), p.clone().addScaledVector(v,1000)]);
+      return new THREE.Line(geo, new THREE.LineBasicMaterial({color:0xffffff}));
+    }
+    return null;
+  }
+  function addPlot(rec){ rec.color=colorFor(rec); const obj=buildObj(rec); if(!obj) return false; obj.renderOrder=1; scene.add(obj); rec.obj=obj; rec.visible=(rec.visible!==false); obj.visible=rec.visible; plots.push(rec); return true; }
+  function rebuild(rec){ scene.remove(rec.obj); rec.obj.geometry.dispose(); rec.obj.material.dispose(); rec.color=colorFor(rec); const obj=buildObj(rec); if(!obj) return false; obj.renderOrder=1; obj.visible=rec.visible; scene.add(obj); rec.obj=obj; return true; }
+
+  function resetBtn(){ editing=null; $('eqPlot').textContent='Plotar equação'; if($('retaPlot')) $('retaPlot').textContent='Plotar reta'; refresh(); }
+
+  $('eqPlot').onclick=()=>{
+    const expr=$('eqInput').value; if(!expr.trim()) return;
+    if(editing && editing.type!=='line'){ editing.expr=expr; if(!rebuild(editing)){ alert('Equação inválida.'); return; } }
+    else { if(!addPlot({type:is3D?'surf':'curve', expr, color:palette[ci++%palette.length]})){ alert('Não consegui plotar essa equação. Use ^ para potência e * para multiplicar.'); return; } }
+    save(); $('eqInput').value=''; $('eqPreview').innerHTML=''; resetBtn();
+  };
+  if($('retaPlot')) $('retaPlot').onclick=()=>{
+    const P=[+$('rPx').value||0,+$('rPy').value||0,+$('rPz').value||0]; const V=[+$('rVx').value||0,+$('rVy').value||0,+$('rVz').value||0];
+    if(editing && editing.type==='line'){ editing.P=P; editing.V=V; rebuild(editing); } else addPlot({type:'line',P,V,color:0xffffff});
+    save(); resetBtn();
+  };
+
+  function loadEdit(r){
+    editing=r;
+    if(r.type==='line'){ if(is3D) $('eqTipoReta').click(); $('rPx').value=r.P[0]; $('rPy').value=r.P[1]; $('rPz').value=r.P[2]; $('rVx').value=r.V[0]; $('rVy').value=r.V[1]; $('rVz').value=r.V[2]; if($('retaPlot')) $('retaPlot').textContent='Atualizar reta'; }
+    else { if(is3D) $('eqTipoSurf').click(); $('eqInput').value=r.expr; preview(); $('eqPlot').textContent='Atualizar'; }
+    refresh();
+  }
+  function removePlot(r){ scene.remove(r.obj); r.obj.geometry.dispose(); r.obj.material.dispose(); plots.splice(plots.indexOf(r),1); if(editing===r) resetBtn(); else { save(); refresh(); } }
+  function toggleVis(r){ r.visible=!r.visible; r.obj.visible=r.visible; save(); refresh(); }
+
+  function refresh(){
+    const list=$('eqList'); list.innerHTML='';
+    plots.forEach(r=>{
+      const hex='#'+r.color.toString(16).padStart(6,'0');
+      const row=document.createElement('div'); row.className='item'+(editing===r?' sel':'');
+      const dot=document.createElement('span'); dot.className='dot'; dot.style.background=hex;
+      const nm=document.createElement('span'); nm.className='nm tex';
+      if(r.type==='line') nm.textContent=`reta (${r.P.join(',')})+t(${r.V.join(',')})`; else renderTex(nm, r.expr);
+      const eye=document.createElement('button'); eye.className='eye'; eye.textContent=r.visible?'👁':'🙈'; eye.onclick=e=>{ e.stopPropagation(); toggleVis(r); };
+      const del=document.createElement('button'); del.className='x'; del.textContent='✕'; del.onclick=e=>{ e.stopPropagation(); removePlot(r); };
+      row.appendChild(dot); row.appendChild(nm); row.appendChild(eye); row.appendChild(del);
+      row.onclick=()=>loadEdit(r);
+      list.appendChild(row);
+    });
+  }
+  function save(){ try{ localStorage.setItem(KEYEQ, JSON.stringify(plots.map(r=> r.type==='line'?{type:'line',P:r.P,V:r.V,color:r.color,visible:r.visible}:{type:r.type,expr:r.expr,color:r.color,visible:r.visible}))); }catch(e){} }
+  function load(){ let arr=[]; try{ arr=JSON.parse(localStorage.getItem(KEYEQ)||'[]'); }catch(e){} arr.forEach(r=>addPlot(r)); ci=plots.length; refresh(); }
+  load();
+}
+
+// =================== MODELOS 3D ===================
+function setupModelos(){
+  let selShape='cubo', selected=null, down=null, gizmo=null, dimMode='vol';
+  const objetos=[]; const KEY='geopsic_modelos_3d';
+  const palette=[0x6366f1,0x10b981,0xf59e0b,0xf43f5e,0x0ea5e9,0x8b5cf6,0x14b8a6,0xec4899]; let colorIdx=0;
+  const raycaster=new THREE.Raycaster(); const ground=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+
+  document.querySelectorAll('.shape').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.shape').forEach(x=>x.classList.remove('on')); b.classList.add('on'); selShape=b.dataset.shape; renderDims(); });
+
+  // campos de dimensões digitáveis (sem barras)
+  function renderDims(){ const box=$('dimBox'); box.innerHTML='';
+    (DIMSPEC[selShape]||[]).forEach(([k,lab,def])=>{ const r=document.createElement('label'); r.className='row';
+      r.innerHTML=`${lab} <input type="number" class="numin" id="dim_${k}" value="${def}" min="0.05" step="0.5">`; box.appendChild(r); }); }
+  $('modoVol').onclick=()=>{ dimMode='vol'; $('modoVol').classList.add('on'); $('modoDim').classList.remove('on'); $('volBox').style.display='block'; $('dimBox').style.display='none'; };
+  $('modoDim').onclick=()=>{ dimMode='dim'; $('modoDim').classList.add('on'); $('modoVol').classList.remove('on'); $('volBox').style.display='none'; $('dimBox').style.display='block'; renderDims(); };
+  renderDims();
+
+  function makeArrow(dir,len,color){ const g=new THREE.Group(); const r=Math.max(0.05,len*0.022); const sl=len*0.78,hl=len*0.22;
+    const mat=new THREE.MeshStandardMaterial({color,roughness:.4,metalness:.05,emissive:color,emissiveIntensity:.28});
+    const sh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,sl,18),mat); sh.position.y=sl/2;
+    const hd=new THREE.Mesh(new THREE.ConeGeometry(r*2.6,hl,20),mat); hd.position.y=sl+hl/2; g.add(sh,hd);
+    g.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize()); return g; }
+  function makeGizmo(len){ const g=new THREE.Group(); g.add(makeArrow(new THREE.Vector3(1,0,0),len,0xf87171)); g.add(makeArrow(new THREE.Vector3(0,1,0),len,0x34d399)); g.add(makeArrow(new THREE.Vector3(0,0,1),len,0x60a5fa)); return g; }
+  function syncGizmo(){ if(gizmo&&selected) gizmo.position.copy(selected.position); }
+  function updateHUD(){ const p=selected?selected.position:null; $('hudX').textContent=p?p.x.toFixed(1):'—'; $('hudY').textContent=p?p.y.toFixed(1):'—'; $('hudZ').textContent=p?p.z.toFixed(1):'—'; }
+  function select(mesh){
+    if(selected) selected.material.emissive.setHex(0x000000);
+    if(gizmo){ scene.remove(gizmo); gizmo=null; }
+    selected=mesh;
+    if(mesh){ mesh.material.emissive.setHex(0x2a4a6a); gizmo=makeGizmo(mesh.userData.sizeChar*(mesh.userData.uscale||1)*0.7+2); gizmo.position.copy(mesh.position); scene.add(gizmo); $('selName').textContent=nomes[mesh.userData.shape]; showModal(mesh); }
+    else { $('selName').textContent='nenhum'; $('objModal').style.display='none'; }
+    updateHUD(); fillLoc(); refreshList();
+  }
+  function fillLoc(){ const dis=!selected; $('locX').disabled=$('locY').disabled=$('locZ').disabled=dis;
+    if(selected){ const p=selected.position; $('locX').value=p.x.toFixed(1); $('locY').value=p.y.toFixed(1); $('locZ').value=p.z.toFixed(1); } else { $('locX').value=$('locY').value=$('locZ').value=''; } }
+  function applyLoc(){ if(!selected) return; selected.position.set(+$('locX').value||0,+$('locY').value||0,+$('locZ').value||0); syncGizmo(); updateHUD(); save(); }
+  ['locX','locY','locZ'].forEach(id=>$(id).addEventListener('input',applyLoc));
+
+  function addModelo(shape,dims,mass,pos,color,opts){ opts=opts||{}; const d=geoFor(shape,dims);
+    const mesh=new THREE.Mesh(d.geo,new THREE.MeshStandardMaterial({color,roughness:.32,metalness:.06}));
+    const uscale=opts.scale||1;
+    mesh.userData={shape,dims:Object.assign({},dims),vol:Math.round(d.vol),mass,sizeChar:d.sizeChar,restY:d.restY,color,uscale,physics:!!opts.phys,v:new THREE.Vector3(),fT:0,mode:opts.mode||'free'};
+    mesh.scale.setScalar(uscale);
+    if(opts.rot){ mesh.rotation.set(opts.rot[0]||0,opts.rot[1]||0,opts.rot[2]||0); } else if(shape==='toro') mesh.rotation.x=Math.PI/2;
+    mesh.position.copy(pos); scene.add(mesh); objetos.push(mesh); return mesh; }
+  function criar(){ const shape=selShape, m=Math.max(0,+$('mass').value||0);
+    let dims; if(dimMode==='dim'){ dims={}; (DIMSPEC[shape]||[]).forEach(([k])=>dims[k]=Math.max(.05,+$('dim_'+k).value||0)); }
+    else dims=dimsForVolume(shape,Math.max(1,+$('vol').value||0));
+    const d=geoFor(shape,dims); const color=palette[colorIdx++%palette.length];
+    const sx=$('newX').value!==''?(+$('newX').value||0):((objetos.length%5)-2)*4;
+    const sy=$('newY').value!==''?(+$('newY').value||0):d.restY;
+    const sz=$('newZ').value!==''?(+$('newZ').value||0):0;
+    const mesh=addModelo(shape,dims,m,new THREE.Vector3(sx,sy,sz),color); select(mesh); save(); }
+  function removeObj(m){ if(selected===m) select(null); scene.remove(m); objetos.splice(objetos.indexOf(m),1); m.geometry.dispose(); m.material.dispose(); save(); refreshList(); }
+  $('criar').onclick=criar;
+  $('delSel').onclick=()=>{ if(selected) removeObj(selected); };
+  $('clear').onclick=()=>{ select(null); objetos.forEach(m=>{ scene.remove(m); m.geometry.dispose(); m.material.dispose(); }); objetos.length=0; save(); refreshList(); };
+
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(objetos.map(m=>({s:m.userData.shape,d:m.userData.dims,v:m.userData.vol,m:m.userData.mass,c:m.userData.color,x:+m.position.x.toFixed(3),y:+m.position.y.toFixed(3),z:+m.position.z.toFixed(3),sc:m.userData.uscale||1,rx:+m.rotation.x.toFixed(4),ry:+m.rotation.y.toFixed(4),rz:+m.rotation.z.toFixed(4),ph:!!m.userData.physics})))); }catch(e){} }
+  function load(){ let a=[]; try{ a=JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){} a.forEach(o=>{ const rot=(typeof o.rx==='number')?[o.rx,o.ry,o.rz]:null; const dims=o.d||dimsForVolume(o.s,o.v||1000); addModelo(o.s,dims,o.m,new THREE.Vector3(o.x,o.y,o.z),o.c,{scale:o.sc,rot,phys:o.ph}); }); colorIdx=objetos.length; refreshList(); }
+  function refreshList(){ $('count').textContent=objetos.length; const list=$('list'); list.innerHTML='';
+    objetos.forEach(m=>{ const row=document.createElement('div'); row.className='item'+(m===selected?' sel':'');
+      const hex='#'+m.userData.color.toString(16).padStart(6,'0');
+      row.innerHTML=`<span class="dot" style="background:${hex}"></span><span class="nm">${nomes[m.userData.shape]}</span><span class="vv">${m.userData.vol} cm³</span><button class="x">✕</button>`;
+      row.onclick=e=>{ if(e.target.classList.contains('x')) removeObj(m); else select(m); }; list.appendChild(row); }); }
+
+  const ndc=e=>{ const r=renderer.domElement.getBoundingClientRect(); return new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1); };
+  renderer.domElement.addEventListener('pointerdown', e=>{ raycaster.setFromCamera(ndc(e),camera); const hit=raycaster.intersectObjects(objetos,false)[0]; down={x:e.clientX,y:e.clientY,obj:hit?hit.object:null}; if(down.obj){ select(down.obj); controls.enabled=false; } });
+  renderer.domElement.addEventListener('pointermove', e=>{ if(!down||!down.obj) return; raycaster.setFromCamera(ndc(e),camera); const pt=new THREE.Vector3(); if(raycaster.ray.intersectPlane(ground,pt)){ down.obj.position.x=pt.x; down.obj.position.z=pt.z; syncGizmo(); updateHUD(); fillLoc(); } });
+  addEventListener('pointerup', e=>{ if(!down) return; const moved=Math.hypot(e.clientX-down.x,e.clientY-down.y); if(down.obj){ controls.enabled=true; if(moved>2) save(); } else if(moved<=6) select(null); down=null; });
+
+  // ---- modal flutuante do objeto (segue o objeto na tela) ----
+  function showModal(m){ const md=$('objModal'); md.style.display='block'; $('omName').textContent=nomes[m.userData.shape];
+    $('omScale').value=m.userData.uscale||1;
+    $('omRX').value=Math.round(m.rotation.x*180/Math.PI);
+    $('omRY').value=Math.round(m.rotation.y*180/Math.PI);
+    $('omRZ').value=Math.round(m.rotation.z*180/Math.PI);
+    const on=!!m.userData.physics; $('omPhys').textContent='Física: '+(on?'ON':'OFF'); $('omPhys').classList.toggle('on',on); updateModalPos(); }
+  function updateModalPos(){ if(!selected) return; const v=selected.position.clone(); v.y+=(selected.userData.sizeChar*(selected.userData.uscale||1))*0.45; v.project(camera);
+    const x=(v.x*0.5+0.5)*innerWidth, y=(-v.y*0.5+0.5)*innerHeight; const md=$('objModal');
+    md.style.left=Math.max(8,Math.min(innerWidth-214,x+18))+'px'; md.style.top=Math.max(58,Math.min(innerHeight-200,y-20))+'px'; }
+  $('omScale').oninput=()=>{ if(!selected) return; const v=+$('omScale').value; selected.userData.uscale=v; selected.scale.setScalar(v); save(); };
+  $('omRX').oninput=()=>{ if(!selected) return; selected.rotation.x=+$('omRX').value*Math.PI/180; save(); };
+  $('omRY').oninput=()=>{ if(!selected) return; selected.rotation.y=+$('omRY').value*Math.PI/180; save(); };
+  $('omRZ').oninput=()=>{ if(!selected) return; selected.rotation.z=+$('omRZ').value*Math.PI/180; save(); };
+  $('omPhys').onclick=()=>{ if(!selected) return; const on=!selected.userData.physics; selected.userData.physics=on; if(selected.userData.v) selected.userData.v.set(0,0,0); $('omPhys').textContent='Física: '+(on?'ON':'OFF'); $('omPhys').classList.toggle('on',on); save(); };
+  $('omClose').onclick=()=>select(null);
+  modelosTick=()=>{ if(selected){ syncGizmo(); updateHUD(); if($('objModal').style.display!=='none') updateModalPos(); } };
+  getModelos=()=>objetos;
+  criarModelo=(shape,dims,mass,pos,color,opts)=>{ const m=addModelo(shape,dims,mass,pos,color,opts); save(); refreshList(); return m; };
+  limparModelos=()=>{ select(null); objetos.forEach(m=>{ scene.remove(m); m.geometry.dispose(); m.material.dispose(); }); objetos.length=0; save(); refreshList(); };
+  selecionarModelo=(m)=>select(m);
+
+  load();
+}
+
+// =================== FÍSICA — Leis de Newton (atua nos objetos criados) ===================
+function setupFisica(){
+  const stage=new THREE.Group(); stage.visible=true; scene.add(stage); fisicaStage=stage;
+  const clock=new THREE.Clock();
+  const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+  const P={g:9.8, mu:0.3, e:0.55};
+  let running=true, collide=true, vshow=true, timeScale=1, applyTarget=-1, snapshot=null;
+  const arrows=[]; const fScale=0.22, vScale=0.30;
+
+  const modelos=()=> getModelos? getModelos():[];
+  const dyn=()=> modelos().filter(m=>m.userData.physics);
+  const massa=m=> Math.max(0.001, m.userData.mass/1000);             // kg
+  const raio=m=> (m.userData.sizeChar*(m.userData.uscale||1))/2;
+  const floorY=m=> m.userData.restY*(m.userData.uscale||1);
+  function ensureV(m){ if(!m.userData.v) m.userData.v=new THREE.Vector3(); if(m.userData.fT==null) m.userData.fT=0; }
+
+  // ---- motor: 2a lei (a = F/m) + chao + atrito + colisao (3a lei) + modos (rampa/giro/pendulo) ----
+  function takeSnapshot(){ snapshot=modelos().map(m=>({m,p:m.position.clone()})); }
+  function markInit(m){ ensureV(m); m.userData.init={ pos:m.position.clone(), v0:m.userData.v.clone(),
+      pend:m.userData.pend?Object.assign({},m.userData.pend):null,
+      circ:m.userData.circ?Object.assign({},m.userData.circ):null,
+      incl:m.userData.incl?Object.assign({},m.userData.incl):null,
+      fSus:m.userData.fSus?m.userData.fSus.clone():null }; }
+  function restore(){ modelos().forEach(m=>{ const I=m.userData.init; if(!I) return; ensureV(m);
+      m.position.copy(I.pos); m.userData.v.copy(I.v0||V(0,0,0)); m.userData.fT=0;
+      m.userData.pend=I.pend?Object.assign({},I.pend):null;
+      m.userData.circ=I.circ?Object.assign({},I.circ):null;
+      m.userData.incl=I.incl?Object.assign({},I.incl):null;
+      m.userData.fSus=I.fSus?I.fSus.clone():null; });
+    if(snapshot) snapshot.forEach(s=>{ if(s.m.userData.init) return; s.m.position.copy(s.p); if(s.m.userData.v) s.m.userData.v.set(0,0,0); s.m.userData.fT=0; }); }
+  // ---- modos com vínculo ----
+  function stepPendulum(m,dt){ const pn=m.userData.pend; if(!pn) return;
+    const al=-(P.g/Math.max(.1,pn.L))*Math.sin(pn.theta) - (pn.damp||0)*pn.omega;
+    pn.omega+=al*dt; pn.theta+=pn.omega*dt;
+    m.position.set(pn.pivot.x+pn.L*Math.sin(pn.theta), pn.pivot.y-pn.L*Math.cos(pn.theta), pn.pivot.z);
+    const sp=pn.L*pn.omega; m.userData.v.set(sp*Math.cos(pn.theta),sp*Math.sin(pn.theta),0); }
+  function stepCircular(m,dt){ const c=m.userData.circ; if(!c) return;
+    c.theta+=c.omega*dt;
+    m.position.set(c.center.x+c.R*Math.cos(c.theta), c.center.y, c.center.z+c.R*Math.sin(c.theta));
+    const sp=c.omega*c.R; m.userData.v.set(-sp*Math.sin(c.theta),0,sp*Math.cos(c.theta)); }
+  function stepIncline(m,dt){ const I=m.userData.incl; if(!I) return;
+    const a=I.alpha, mu=(I.mu!=null?I.mu:P.mu);
+    const dir=V(Math.cos(a),Math.sin(a),0), nrm=V(-Math.sin(a),Math.cos(a),0);
+    let acc=-P.g*Math.sin(a); const fr=mu*P.g*Math.cos(a);
+    if(Math.abs(I.vs)>1e-3) acc+=(I.vs>0?-1:1)*fr;
+    else if(Math.abs(acc)<=fr){ acc=0; I.vs=0; }
+    else acc+=(acc>0?-1:1)*fr;
+    I.vs+=acc*dt; I.s+=I.vs*dt;
+    if(I.s<0){ I.s=0; if(I.vs<0) I.vs=0; }
+    const base=I.base||V(0,0,0), contact=base.clone().addScaledVector(dir,I.s);
+    m.position.copy(contact).addScaledVector(nrm, floorY(m));
+    m.userData.v.copy(dir).multiplyScalar(I.vs); }
+  function step(dt){
+    const list=dyn();
+    if(!snapshot && list.length) takeSnapshot();
+    list.forEach(m=>{ ensureV(m); const mode=m.userData.mode||'free';
+      if(mode==='pendulum'){ stepPendulum(m,dt); return; }
+      if(mode==='circular'){ stepCircular(m,dt); return; }
+      if(mode==='incline'){ stepIncline(m,dt); return; }
+      const mk=massa(m);                                              // massa em kg (SI)
+      const Fap=V(0,0,0);                                             // soma das forças aplicadas (N)
+      if(m.userData.fT>0 && m.userData.fVec){ Fap.add(m.userData.fVec); m.userData.fT-=dt; }   // impulso curto
+      if(m.userData.fSus){ Fap.add(m.userData.fSus); }                                          // força sustentada
+      const fy=floorY(m);
+      const resting = (m.position.y<=fy+1e-3) && Math.abs(m.userData.v.y)<0.2;   // apoiado no chão (não quicando)
+      let ay=-P.g + Fap.y/mk; if(resting && ay<0) ay=0;              // peso; normal sustenta quando apoiado
+      m.userData.v.y += ay*dt;
+      m.userData.v.x += (Fap.x/mk)*dt; m.userData.v.z += (Fap.z/mk)*dt;          // 2ª lei na horizontal
+      if(resting){ const N=mk*P.g, fmax=P.mu*N;                       // N=mg, atrito máx = μN
+        const vh=Math.hypot(m.userData.v.x,m.userData.v.z), Fh=Math.hypot(Fap.x,Fap.z);
+        if(vh<1e-3){                                                  // em repouso: atrito ESTÁTICO
+          if(Fh<=fmax){ m.userData.v.x=0; m.userData.v.z=0; }        // F ≤ μN → não desliza
+          else { const k=P.mu*P.g*dt/Fh; m.userData.v.x-=Fap.x*k; m.userData.v.z-=Fap.z*k; }   // vence: começa com cinético
+        } else { const dec=P.mu*P.g*dt, ns=Math.max(0,vh-dec); m.userData.v.x*=ns/vh; m.userData.v.z*=ns/vh; }  // CINÉTICO opõe à v
+      }
+      m.position.addScaledVector(m.userData.v, dt);
+      if(m.position.y<fy){ m.position.y=fy;
+        if(m.userData.v.y<0){ const vi=-m.userData.v.y; m.userData.v.y=(vi>0.4)? vi*P.e : 0; } }  // quique (restituição e)
+    });
+    if(collide){ for(let i=0;i<list.length;i++) for(let j=i+1;j<list.length;j++){ const A=list[i],B=list[j];
+      if((A.userData.mode||'free')!=='free' || (B.userData.mode||'free')!=='free') continue;   // só corpos livres colidem
+      const rA=raio(A),rB=raio(B); const d=new THREE.Vector3().subVectors(B.position,A.position); const dist=d.length(), minD=rA+rB;
+      if(dist<minD && dist>1e-6){ const n=d.multiplyScalar(1/dist), ov=minD-dist; const mA=massa(A),mB=massa(B);
+        A.position.addScaledVector(n,-ov*mB/(mA+mB)); B.position.addScaledVector(n, ov*mA/(mA+mB));
+        const rel=new THREE.Vector3().subVectors(B.userData.v,A.userData.v).dot(n);
+        if(rel<0){ const jimp=-(1+P.e)*rel/(1/mA+1/mB); A.userData.v.addScaledVector(n,-jimp/mA); B.userData.v.addScaledVector(n, jimp/mB); }   // impulso (3a lei)
+      }
+    } }
+  }
+
+  // ---- vetores de forca ----
+  function mkArrow(){ const a=new THREE.ArrowHelper(V(0,1,0),V(0,0,0),1,0xffffff,0.5,0.3); const lb=makeLabel(0xffffff); const g=new THREE.Group(); g.add(a); g.add(lb); g.visible=false; stage.add(g); return {g,a,lb}; }
+  function ensureArrows(n){ while(arrows.length<n) arrows.push(mkArrow()); }
+  function setArrow(ar,o,vec,c,name,vel){ const mag=vec.length(); if(!isFinite(mag)||mag<1e-3){ ar.g.visible=false; return; } ar.g.visible=true;
+    const len=clamp(mag*(vel?vScale:fScale),0.5,9); ar.a.position.copy(o); ar.a.setColor(new THREE.Color(c)); ar.a.setDirection(vec.clone().normalize());
+    ar.a.setLength(len, clamp(len*0.24,0.2,1.2), clamp(len*0.14,0.12,0.7));
+    ar.lb.position.copy(o).add(vec.clone().normalize().multiplyScalar(len+0.5)); ar.lb.userData.color='#'+c.toString(16).padStart(6,'0');
+    setLabel(ar.lb, vel?`v=${mag.toFixed(1)}`:`${name}=${mag.toFixed(1)}N`); }
+  function drawVectors(){
+    const items=[];
+    dyn().forEach(m=>{ ensureV(m); const mk=massa(m); const o=m.position.clone(); const mode=m.userData.mode||'free';
+      if(mode==='pendulum'){ const pn=m.userData.pend; if(pn){ const toPiv=pn.pivot.clone().sub(m.position).normalize();
+          const T=mk*(P.g*Math.cos(pn.theta)+pn.L*pn.omega*pn.omega);
+          items.push({o,v:V(0,-mk*P.g,0),c:0xffd166,n:'P'});
+          items.push({o,v:toPiv.multiplyScalar(T),c:0x06d6a0,n:'T'});
+          items.push({o,v:m.userData.v.clone(),c:0xffffff,n:'v',vel:true}); } return; }
+      if(mode==='circular'){ const c=m.userData.circ; if(c){ const toC=c.center.clone().sub(m.position); toC.y=0; toC.normalize();
+          const Fc=mk*c.omega*c.omega*c.R;
+          items.push({o,v:toC.multiplyScalar(Fc),c:0xef476f,n:'Fc'});
+          items.push({o,v:m.userData.v.clone(),c:0xffffff,n:'v',vel:true}); } return; }
+      if(mode==='incline'){ const I=m.userData.incl; if(I){ const a=I.alpha; const nrm=V(-Math.sin(a),Math.cos(a),0), dir=V(Math.cos(a),Math.sin(a),0);
+          const mu=(I.mu!=null?I.mu:P.mu);
+          items.push({o,v:V(0,-mk*P.g,0),c:0xffd166,n:'P'});
+          items.push({o,v:nrm.clone().multiplyScalar(mk*P.g*Math.cos(a)),c:0x06d6a0,n:'N'});
+          if(Math.abs(I.vs)>1e-3) items.push({o,v:(I.vs>=0?dir.clone().negate():dir.clone()).multiplyScalar(mu*mk*P.g*Math.cos(a)),c:0xff924c,n:'fat'});
+          items.push({o,v:m.userData.v.clone(),c:0xffffff,n:'v',vel:true}); } return; }
+      const contact=Math.abs(m.position.y-floorY(m))<0.06;
+      items.push({o,v:V(0,-mk*P.g,0),c:0xffd166,n:'P'});
+      if(contact){ items.push({o,v:V(0,mk*P.g,0),c:0x06d6a0,n:'N'});
+        const vh=V(m.userData.v.x,0,m.userData.v.z); if(vh.length()>1e-3) items.push({o,v:vh.normalize().multiplyScalar(-P.mu*mk*P.g),c:0xff924c,n:'fat'}); }
+      if(m.userData.fT>0 && m.userData.fVec) items.push({o,v:m.userData.fVec.clone(),c:0xef476f,n:'F'});
+      if(m.userData.fSus) items.push({o,v:m.userData.fSus.clone(),c:0xef476f,n:'F'});
+      items.push({o,v:m.userData.v.clone(),c:0xffffff,n:'v',vel:true});
+    });
+    ensureArrows(items.length);
+    arrows.forEach((ar,i)=>{ if(i<items.length){ const e=items[i]; setArrow(ar,e.o,e.v,e.c,e.n,e.vel); } else ar.g.visible=false; });
+  }
+
+  // ---- alvo das aplicacoes ----
+  function fillAlvo(){ const sel=$('fAlvo'); const cur=sel.value; sel.innerHTML='';
+    modelos().forEach((m,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=`${nomes[m.userData.shape]} · ${m.userData.mass} g`; sel.appendChild(o); });
+    if(cur && sel.querySelector(`option[value="${cur}"]`)) sel.value=cur;
+    applyTarget = sel.value!==''? +sel.value : -1; }
+  function alvo(){ const list=modelos(); return (applyTarget>=0 && list[applyTarget])? list[applyTarget] : null; }
+  function ativar(m){ m.userData.physics=true; ensureV(m); m.userData.v.set(0,0,0); m.userData.fT=0; }
+
+  function readout(){ const m=alvo(); if(!m){ $('fReadout').textContent='Crie um objeto, ligue Física ON no modal e escolha em "Aplicar em".'; return; }
+    ensureV(m); const mk=massa(m); const mode=m.userData.mode||'free'; const contact=Math.abs(m.position.y-floorY(m))<0.06;
+    const L=[ nomes[m.userData.shape]+' — '+m.userData.mass+' g = '+mk.toFixed(3)+' kg (SI)',
+      'P = m·g = '+(mk*P.g).toFixed(2)+' N',
+      '|v| = '+m.userData.v.length().toFixed(2)+' m/s' ];
+    if(mode==='circular'){ const c=m.userData.circ; if(c){ const v=c.omega*c.R, Fc=mk*c.omega*c.omega*c.R;
+      L.push('R = '+c.R.toFixed(2)+' m', 'ω = '+c.omega.toFixed(3)+' rad/s', 'v = ω·R = '+v.toFixed(2)+' m/s', 'Fc = m·v²/R = '+Fc.toFixed(2)+' N'); } }
+    else if(mode==='pendulum'){ const pn=m.userData.pend; if(pn){ const T=2*Math.PI*Math.sqrt(pn.L/Math.max(.01,P.g)), Tens=mk*(P.g*Math.cos(pn.theta)+pn.L*pn.omega*pn.omega);
+      L.push('L = '+pn.L.toFixed(2)+' m', 'θ = '+(pn.theta*180/Math.PI).toFixed(1)+'°', 'T ≈ 2π√(L/g) = '+T.toFixed(2)+' s', 'tração ≈ '+Tens.toFixed(2)+' N'); } }
+    else if(mode==='incline'){ const I=m.userData.incl; if(I){ const mu=(I.mu!=null?I.mu:P.mu), a=P.g*(Math.sin(I.alpha)-mu*Math.cos(I.alpha));
+      L.push('α = '+(I.alpha*180/Math.PI).toFixed(1)+'°', 'μ = '+mu.toFixed(2), 'a = g(senα−μcosα) = '+a.toFixed(2)+' m/s²'+(a<=0?' (não desliza)':''),
+        'P∥ = m·g·senα = '+(mk*P.g*Math.sin(I.alpha)).toFixed(2)+' N', 'atrito máx = μ·m·g·cosα = '+(mu*mk*P.g*Math.cos(I.alpha)).toFixed(2)+' N'); } }
+    else { L.push('N = '+(contact?(mk*P.g).toFixed(2)+' N':'0 (no ar)'), 'altura y = '+m.position.y.toFixed(2)+' m');
+      if(m.userData.fSus){ const F=m.userData.fSus.length(), at=contact?P.mu*mk*P.g:0, a=(F-at)/mk;
+        L.push('F aplicada = '+F.toFixed(2)+' N', 'a = (F−μmg)/m = '+a.toFixed(2)+' m/s²'); } }
+    L.push(m.userData.physics?'física: ATIVA':'física: inativa (ligue no modal)');
+    $('fReadout').textContent=L.join('\n'); }
+
+  // ---- controles ----
+  $('fG').oninput=()=>P.g=+$('fG').value||0;
+  $('fMu').oninput=()=>P.mu=+$('fMu').value||0;
+  $('fE').oninput=()=>P.e=+$('fE').value||0;
+  $('fCol').onchange=()=>collide=$('fCol').checked;
+  $('fRun').onclick=()=>{ running=!running; $('fRun').textContent=running?'Pausar':'Continuar'; };
+  $('fReset').onclick=()=>{ restore(); snapshot=null; };
+  $('fVec').onclick=()=>{ vshow=!vshow; $('fVec').textContent='Vetores: '+(vshow?'ON':'OFF'); if(!vshow) arrows.forEach(a=>a.g.visible=false); };
+  $('fSpeed').oninput=()=>{ timeScale=Math.max(0.1,+$('fSpeed').value||1); };
+  $('fAlvo').onchange=()=>applyTarget=+$('fAlvo').value;
+  function modoLivre(m){ m.userData.mode='free'; m.userData.pend=m.userData.circ=m.userData.incl=null; m.userData.fSus=null; }
+  $('aQueda').onclick=()=>{ const m=alvo(); if(!m) return; ativar(m); modoLivre(m); m.position.y=+$('aH').value||10; markInit(m); snapshot=null; };
+  $('aLanc').onclick=()=>{ const m=alvo(); if(!m) return; ativar(m); modoLivre(m); const a=(+$('aAng').value||45)*Math.PI/180, v0=+$('aV0').value||10; m.userData.v.set(v0*Math.cos(a),v0*Math.sin(a),0); markInit(m); snapshot=null; };
+  $('aPush').onclick=()=>{ const m=alvo(); if(!m) return; ativar(m); modoLivre(m); m.userData.fVec=V(+$('aF').value||0,0,0); m.userData.fT=0.5; markInit(m); snapshot=null; };
+  $('aToggle').onclick=()=>{ const m=alvo(); if(!m) return; m.userData.physics=!m.userData.physics; ensureV(m); };
+  $('fStart').onclick=()=>{ const m=alvo()||dyn()[0]||modelos()[0]; if(!m) return; ativar(m); modoLivre(m); m.position.set(0,0,0); m.userData.v.set(0,0,0); m.userData.fT=0; running=true; $('fRun').textContent='Pausar'; markInit(m); snapshot=null; };
+
+  $('fisicaPanel').style.display='block'; fillAlvo(); $('fAlvo').onfocus=fillAlvo;
+  fisicaShow=()=>{ fillAlvo(); };
+  fisicaReset=()=>{ restore(); snapshot=null; };
+  fisicaStart=()=>{ running=true; $('fRun').textContent='Pausar'; snapshot=null; fillAlvo(); };
+  fisicaMarkInit=markInit;
+  fisicaTick=()=>{ const dt=Math.min(clock.getDelta(),0.05);
+    if(running){ const h=dt*timeScale; const sub=Math.max(1,Math.ceil(h/0.006)); const sd=h/sub; for(let i=0;i<sub;i++) step(sd); }
+    if(stage.visible){ if(vshow) drawVectors(); readout(); } else arrows.forEach(a=>a.g.visible=false); };
+}
+
+// =================== SITUAÇÕES DE FÍSICA (cenários padrão) ===================
+let sitTick=null;
+function setupSituacoes(){
+  const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+  const sitAux=new THREE.Group(); scene.add(sitAux);
+  function clearAux(){ while(sitAux.children.length){ const c=sitAux.children.pop(); if(c.geometry&&c.geometry.dispose)c.geometry.dispose(); if(c.material&&c.material.dispose)c.material.dispose(); } sitTick=null; }
+  function setGlobal(id,val){ const el=$(id); if(!el) return; el.value=val; el.dispatchEvent(new Event('input')); }
+  function setChk(id,on){ const el=$(id); if(!el) return; el.checked=on; el.dispatchEvent(new Event('change')); }
+  const Dball={r:0.6}, Dblock={L:1.2};
+  const restOf=(shape,d)=>geoFor(shape,d).restY;
+
+  function novo(shape,dims,massa,pos,color,setup){ const m=criarModelo(shape,dims,Math.max(1,massa),pos,color,{phys:true}); if(setup) setup(m); if(fisicaMarkInit) fisicaMarkInit(m); return m; }
+
+  // rampa visual (caixa fina alinhada à reta y=tanα·x a partir da base)
+  function rampa(alpha,L,color){ const t=0.6,w=8; const dir=V(Math.cos(alpha),Math.sin(alpha),0), nrm=V(-Math.sin(alpha),Math.cos(alpha),0);
+    const m=new THREE.Mesh(new THREE.BoxGeometry(L,t,w), new THREE.MeshStandardMaterial({color,roughness:.7,metalness:.05,transparent:true,opacity:.55}));
+    m.rotation.z=alpha; m.position.copy(V(0,0,0)).addScaledVector(dir,L/2).addScaledVector(nrm,-t/2); sitAux.add(m); return m; }
+  function anel(center,R,color){ const m=new THREE.Mesh(new THREE.TorusGeometry(R,0.05,10,64), new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.3})); m.rotation.x=Math.PI/2; m.position.copy(center); sitAux.add(m); return m; }
+  function pino(p,color){ const m=new THREE.Mesh(new THREE.SphereGeometry(0.18,12,8), new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.4})); m.position.copy(p); sitAux.add(m); return m; }
+  function fio(color){ const g=new THREE.BufferGeometry().setFromPoints([V(0,0,0),V(0,0,0)]); const l=new THREE.Line(g,new THREE.LineBasicMaterial({color})); sitAux.add(l); return l; }
+
+  const CEN={
+    queda:{ nome:'Queda livre', desc:'Esfera cai sob a gravidade g e quica conforme a restituição e. a = g.',
+      params:[['h','altura h',12],['massa','massa (g)',1000]],
+      build:p=>{ novo('esfera',Dball,p.massa,V(0,p.h,0),0x60a5fa); } },
+    lancamento:{ nome:'Lançamento oblíquo', desc:'Projétil com v₀ e ângulo θ. Alcance e altura saem de g.',
+      params:[['v0','v₀ (m/s)',15],['ang','ângulo θ°',45],['massa','massa (g)',800]],
+      build:p=>{ const a=p.ang*Math.PI/180; novo('esfera',Dball,p.massa,V(-6,restOf('esfera',Dball),0),0xf59e0b,m=>{ m.userData.v.set(p.v0*Math.cos(a),p.v0*Math.sin(a),0); }); } },
+    horizontal:{ nome:'Lançamento horizontal', desc:'Sai na horizontal de uma altura h com v₀.',
+      params:[['v0','v₀ (m/s)',10],['h','altura h',12],['massa','massa (g)',800]],
+      build:p=>{ novo('esfera',Dball,p.massa,V(-6,p.h,0),0x34d399,m=>{ m.userData.v.set(p.v0,0,0); }); } },
+    colisao:{ nome:'Colisão frontal', desc:'Superfície sem atrito: conserva quantidade de movimento (m₁v₁+m₂v₂). e=1 elástica (conserva energia), e=0 totalmente inelástica (corpos seguem juntos).',
+      params:[['m1','massa A (g)',1000],['v1','v A (m/s)',8],['m2','massa B (g)',1000],['v2','v B (m/s)',-6],['e','restituição e (0–1)',1]],
+      build:p=>{ setChk('fCol',true); setGlobal('fMu',0); setGlobal('fE',Math.max(0,Math.min(1,p.e))); const ry=restOf('esfera',Dball);
+        novo('esfera',Dball,p.m1,V(-8,ry,0),0xef476f,m=>m.userData.v.set(p.v1,0,0));
+        novo('esfera',Dball,p.m2,V(8,ry,0),0x4cc9f0,m=>m.userData.v.set(p.v2,0,0)); } },
+    plano:{ nome:'Plano inclinado', desc:'Bloco na rampa de ângulo α e atrito μ. Desce com a = g(senα − μcosα) se vencer o atrito.',
+      params:[['ang','ângulo α°',30],['mu','atrito μ',0.2],['s','posição s (m)',12],['massa','massa (g)',1000]],
+      build:p=>{ const a=p.ang*Math.PI/180, L=Math.max(p.s+3,14); rampa(a,L,0x8b5cf6);
+        novo('cubo',Dblock,p.massa,V(0,0,0),0xf59e0b,m=>{ m.userData.mode='incline'; m.userData.incl={alpha:a,mu:p.mu,s:p.s,vs:0,base:V(0,0,0)}; m.rotation.z=a; }); } },
+    dinamica:{ nome:'Dinâmica (força resultante)', desc:'Força F constante no bloco no chão. a = (F − μmg)/m enquanto F vence o atrito.',
+      params:[['F','força F (N)',30],['mu','atrito μ',0.2],['massa','massa (g)',2000]],
+      build:p=>{ setGlobal('fMu',p.mu); novo('cubo',Dblock,p.massa,V(-8,restOf('cubo',Dblock),0),0x10b981,m=>{ m.userData.fSus=V(p.F,0,0); }); } },
+    estatica:{ nome:'Estática (equilíbrio)', desc:'Corpo em repouso no chão: ΣF = 0, a normal N equilibra o peso P.',
+      params:[['massa','massa (g)',1500]],
+      build:p=>{ novo('cubo',Dblock,p.massa,V(0,restOf('cubo',Dblock),0),0x6366f1); } },
+    centripeta:{ nome:'Centrípeta (giro)', desc:'Giro sustentado pela força centrípeta Fc. De Fc=m·v²/R vem v=√(Fc·R/m) e ω=v/R: para a mesma força, mais massa → gira mais devagar.',
+      params:[['R','raio R (m)',6],['Fc','força centrípeta Fc (N)',60],['massa','massa (g)',600]],
+      build:p=>{ const c=V(0,4,0); anel(c,p.R,0x4cc9f0); pino(c,0xffd479);
+        const mkg=Math.max(.001,p.massa/1000), R=Math.max(.1,p.R), v=Math.sqrt(Math.max(0,p.Fc)*R/mkg), om=v/R;
+        novo('esfera',Dball,p.massa,V(c.x+R,c.y,c.z),0xec4899,m=>{ m.userData.mode='circular'; m.userData.circ={center:c.clone(),R,omega:om,theta:0}; }); } },
+    pendulo:{ nome:'Pêndulo simples', desc:'Oscila por gravidade. Período ≈ 2π·√(L/g) para ângulos pequenos.',
+      params:[['L','comprimento L (m)',10],['ang','ângulo θ₀°',40],['massa','massa (g)',800]],
+      build:p=>{ const piv=V(0,p.L+3,0), th=p.ang*Math.PI/180; pino(piv,0xffd479); const ln=fio(0xbcd2f5);
+        const m=novo('esfera',Dball,p.massa,V(piv.x+p.L*Math.sin(th),piv.y-p.L*Math.cos(th),piv.z),0xf43f5e,o=>{ o.userData.mode='pendulum'; o.userData.pend={pivot:piv.clone(),L:p.L,theta:th,omega:0,damp:0}; });
+        sitTick=()=>{ ln.geometry.setFromPoints([piv,m.position]); }; sitTick(); } }
+  };
+
+  const order=['queda','lancamento','horizontal','colisao','plano','dinamica','estatica','centripeta','pendulo'];
+  const sel=$('sitTipo'); order.forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=CEN[k].nome; sel.appendChild(o); });
+  function renderParams(){ const c=CEN[sel.value]; const box=$('sitParams'); box.innerHTML='';
+    (c.params||[]).forEach(([k,lab,def])=>{ const r=document.createElement('label'); r.className='row'; r.innerHTML=`${lab} <input type="number" class="numin" id="sit_${k}" value="${def}" step="0.5" style="width:90px">`; box.appendChild(r); });
+    $('sitDesc').textContent=c.desc; }
+  sel.onchange=renderParams; renderParams();
+
+  $('sitBuild').onclick=()=>{ const c=CEN[sel.value]; if(!c) return; const p={}; (c.params||[]).forEach(([k])=>p[k]=+$('sit_'+k).value);
+    if(limparModelos) limparModelos(); clearAux(); c.build(p); if(fisicaStart) fisicaStart(); };
+  $('sitClear').onclick=()=>{ if(limparModelos) limparModelos(); clearAux(); if(fisicaReset) fisicaReset(); };
+}
+
+addEventListener('resize', ()=>{ const a=innerWidth/innerHeight;
+  if(camera.isOrthographicCamera){ const f=14; camera.left=-f*a/2; camera.right=f*a/2; camera.top=f/2; camera.bottom=-f/2; } else camera.aspect=a;
+  camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+function animate(){ requestAnimationFrame(animate); controls.update();
+  if(modelosTick) modelosTick();
+  if(fisicaTick) fisicaTick();
+  if(sitTick) sitTick();
+  gridMat.uniforms.uCam.value.copy(camera.position);
+  if(camera.isOrthographicCamera) gridMat.uniforms.uFade.value = 14/camera.zoom*1.7 + 8.0;
+  renderer.render(scene, camera); }
+animate();
+</script>
+</body>
+</html>
