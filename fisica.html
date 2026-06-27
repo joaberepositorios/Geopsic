@@ -234,6 +234,7 @@
     <button class="sec-btn" id="fRun">Pausar</button>
     <button class="sec-btn" id="fReset">Reiniciar</button>
     <button class="sec-btn" id="fVec">Vetores: ON</button>
+    <button class="sec-btn" id="fFit">Enquadrar</button>
   </div>
   <label class="row">velocidade (×) <input type="number" class="numin" id="fSpeed" min="0.1" max="4" step="0.1" value="1" style="width:80px"></label>
 
@@ -281,7 +282,7 @@ function label(text, color='#ffffff'){
 }
 function longAxis(dir, color, name, labelAt){
   const g=new THREE.Group(); const d=dir.clone().normalize();
-  const geo=new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-1000), d.clone().multiplyScalar(1000)]);
+  const geo=new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-1e6), d.clone().multiplyScalar(1e6)]);
   g.add(new THREE.Line(geo, new THREE.LineBasicMaterial({color})));
   const lb=label(name,'#'+color.toString(16).padStart(6,'0')); lb.position.copy(d.clone().multiplyScalar(labelAt)); g.add(lb);
   return g;
@@ -295,7 +296,7 @@ function gradeInfinita(xy){
   const mat=new THREE.ShaderMaterial({ uniforms:{ uCam:{value:new THREE.Vector3()}, uSize:{value:1.0}, uFade:{value:120.0},
     uMinor:{value:new THREE.Color(0x6a80a8)}, uMajor:{value:new THREE.Color(0xa8c8f5)} },
     vertexShader:gridVert, fragmentShader:gridFrag, transparent:true, depthWrite:false, side:THREE.DoubleSide, extensions:{derivatives:true} });
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000), mat); m.renderOrder=-1; if(!xy) m.rotation.x=-Math.PI/2;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(4e6,4e6), mat); m.renderOrder=-1; if(!xy) m.rotation.x=-Math.PI/2;
   return { mesh:m, mat };
 }
 
@@ -318,6 +319,38 @@ if (modo === '2d') {
   camera=new THREE.PerspectiveCamera(55, innerWidth/innerHeight, 0.1, 8000); camera.position.set(14,11,18);
   controls=new OrbitControls(camera, renderer.domElement); controls.enableDamping=true; controls.target.set(0,2,0);
 }
+
+// ---- escala adaptativa: grade, rótulos numéricos (k/M de metros) e enquadramento ----
+let scaleTick=null, frameCena=null;
+function setupScale(){
+  const axes = modo==='2d' ? [['x',0xf87171],['y',0x34d399]] : [['x',0xf87171],['y',0x34d399],['z',0x60a5fa]];
+  const NT=8, tg=new THREE.Group(); scene.add(tg); const ticks=[];
+  axes.forEach(([ax,col])=>{ const arr=[]; for(let i=0;i<2*NT+1;i++){ const sp=makeLabel(col); sp.visible=false; sp.userData.val=NaN; tg.add(sp); arr.push(sp); } ticks.push({ax,arr}); });
+  const nice=x=>{ if(!(x>0)) return 1; const e=Math.floor(Math.log10(x)),p=Math.pow(10,e),m=x/p; return (m<1.5?1:m<3.5?2:m<7.5?5:10)*p; };
+  const fmtM=v=>{ const a=Math.abs(v); if(a<1e-9) return '0'; let s; if(a>=1e6) s=(v/1e6).toFixed((a%1e6)?1:0)+'M'; else if(a>=1e3) s=(v/1e3).toFixed((a%1e3)?1:0)+'k'; else s=String(+v.toFixed(2)); return s+' m'; };
+  const viewDist=()=> camera.isOrthographicCamera ? (camera.top-camera.bottom)/Math.max(1e-3,camera.zoom) : camera.position.distanceTo(controls.target);
+  scaleTick=()=>{ const dist=Math.max(1e-3,viewDist()), major=nice(dist/6);
+    gridMat.uniforms.uSize.value=major/10; gridMat.uniforms.uFade.value=dist*4+major;
+    if(!camera.isOrthographicCamera){ const nf=Math.max(8000,dist*100); if(camera.far<nf*0.5||camera.far>nf*4){ camera.far=nf; camera.near=Math.max(0.05,dist*1e-4); camera.updateProjectionMatrix(); } }
+    const t=controls.target, ss=major*0.5;
+    ticks.forEach(({ax,arr})=>{ const base=Math.round(t[ax]/major)*major;
+      for(let i=0;i<arr.length;i++){ const k=i-NT, val=base+k*major, sp=arr[i];
+        if(k===0){ sp.visible=false; continue; }
+        const pos=new THREE.Vector3(); pos[ax]=val; if(ax==='y') pos.x+=ss*0.6; else pos.y+=ss*0.25;
+        sp.position.copy(pos); sp.scale.set(ss*2.6, ss*0.66, 1);
+        if(sp.userData.val!==val){ setLabel(sp, fmtM(val)); sp.userData.val=val; } sp.visible=true; }
+    });
+  };
+  frameCena=()=>{ const arr=getModelos?getModelos():[]; if(!arr.length) return; const box=new THREE.Box3();
+    arr.forEach(m=>{ box.expandByObject(m); box.expandByPoint(new THREE.Vector3(m.position.x,0,m.position.z)); });
+    if(box.isEmpty()) return; const c=box.getCenter(new THREE.Vector3()), sz=box.getSize(new THREE.Vector3()), r=Math.max(sz.length()/2,1);
+    controls.target.copy(c);
+    if(camera.isOrthographicCamera){ const a=innerWidth/innerHeight,h=r*2.6; camera.left=-h*a/2;camera.right=h*a/2;camera.top=h/2;camera.bottom=-h/2;camera.zoom=1; camera.position.set(c.x,c.y,c.z+Math.max(10,r*3)); }
+    else { const fov=camera.fov*Math.PI/180,d=r/Math.sin(fov/2)*1.25,dir=new THREE.Vector3(0.55,0.45,1).normalize(); camera.position.copy(c).addScaledVector(dir,d); camera.near=Math.max(0.05,d*1e-4); camera.far=Math.max(8000,d*100); }
+    camera.updateProjectionMatrix(); controls.update(); };
+}
+setupScale();
+if($('fFit')) $('fFit').onclick=()=>{ if(frameCena) frameCena(); };
 
 // utilitários compartilhados (modelos + física) — declarados ANTES das chamadas de setup
 function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
@@ -819,7 +852,7 @@ function setupFisica(){
   $('aLanc').onclick=()=>{ const m=alvo(); if(!m) return; ativar(m); modoLivre(m); const a=(+$('aAng').value||45)*Math.PI/180, v0=+$('aV0').value||10; m.userData.v.set(v0*Math.cos(a),v0*Math.sin(a),0); markInit(m); snapshot=null; };
   $('aPush').onclick=()=>{ const m=alvo(); if(!m) return; ativar(m); modoLivre(m); m.userData.fVec=V(+$('aF').value||0,0,0); m.userData.fT=0.5; markInit(m); snapshot=null; };
   $('aToggle').onclick=()=>{ const m=alvo(); if(!m) return; m.userData.physics=!m.userData.physics; ensureV(m); };
-  $('fStart').onclick=()=>{ const m=alvo()||dyn()[0]||modelos()[0]; if(!m) return; ativar(m); modoLivre(m); m.position.set(0,0,0); m.userData.v.set(0,0,0); m.userData.fT=0; running=true; $('fRun').textContent='Pausar'; markInit(m); snapshot=null; };
+  $('fStart').onclick=()=>{ const m=alvo()||dyn()[0]||modelos()[0]; if(!m) return; ativar(m); modoLivre(m); m.position.set(0,0,0); m.userData.v.set(0,0,0); m.userData.fT=0; running=true; $('fRun').textContent='Pausar'; markInit(m); snapshot=null; if(frameCena) frameCena(); };
 
   $('fisicaPanel').style.display='block'; fillAlvo(); $('fAlvo').onfocus=fillAlvo;
   fisicaShow=()=>{ fillAlvo(); };
@@ -897,7 +930,7 @@ function setupSituacoes(){
   sel.onchange=renderParams; renderParams();
 
   $('sitBuild').onclick=()=>{ const c=CEN[sel.value]; if(!c) return; const p={}; (c.params||[]).forEach(([k])=>p[k]=+$('sit_'+k).value);
-    if(limparModelos) limparModelos(); clearAux(); c.build(p); if(fisicaStart) fisicaStart(); };
+    if(limparModelos) limparModelos(); clearAux(); c.build(p); if(fisicaStart) fisicaStart(); if(frameCena) frameCena(); };
   $('sitClear').onclick=()=>{ if(limparModelos) limparModelos(); clearAux(); if(fisicaReset) fisicaReset(); };
 }
 
@@ -910,7 +943,7 @@ function animate(){ requestAnimationFrame(animate); controls.update();
   if(fisicaTick) fisicaTick();
   if(sitTick) sitTick();
   gridMat.uniforms.uCam.value.copy(camera.position);
-  if(camera.isOrthographicCamera) gridMat.uniforms.uFade.value = 14/camera.zoom*1.7 + 8.0;
+  if(scaleTick) scaleTick();
   renderer.render(scene, camera); }
 animate();
 </script>
