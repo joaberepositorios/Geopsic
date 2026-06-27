@@ -1,0 +1,388 @@
+% ============================================================
+%  Geopsics — Article (English translation), IEEE Conference, A4
+%  Source: "Ambiente Virtual 3D no Ensino de Exatas ... Geopsics.pdf"
+%  Ready for Overleaf: blank project -> paste into main.tex -> Recompile (pdfLaTeX).
+%  Note: the original "Resumo" (Sec. VIII) was moved to the top as the
+%        Abstract, following standard academic article format.
+% ============================================================
+\documentclass[conference,a4paper]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+
+\begin{document}
+
+\title{A 3D Virtual Environment for Teaching Exact Sciences: The Computational Interaction of Analytic Geometry and Physics through the Geopsics Software}
+
+\author{
+\IEEEauthorblockN{1\textsuperscript{st} Joabe Alves Pereira}
+\IEEEauthorblockA{\textit{Undergraduate in Computer Engineering} \\
+\textit{GRVA -- Augmented Virtual Reality Group} \\
+\textit{Universidade Federal de Uberlândia}\\
+Uberlândia, Minas Gerais, Brazil \\
+Joabe.pereira@ufu.br}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Sandro Campos Martins Filho}
+\IEEEauthorblockA{\textit{Undergraduate in Computer Engineering} \\
+\textit{GRVA -- Augmented Virtual Reality Group} \\
+\textit{Universidade Federal de Uberlândia}\\
+Uberlândia, Minas Gerais, Brazil \\
+Sandro.filho@ufu.br}
+}
+
+\maketitle
+
+\begin{abstract}
+Geopsics is a software specifically created to integrate Analytic Geometry and Mechanical Physics in a 3D environment, using the Three.js library for visual rendering and Math.js for accurate computation. The tool allows the student to perform the algebraic modeling of quadric surfaces (such as paraboloids and ellipsoids) through their canonical equations, enabling the interactive intersection of these shapes with specific planes in real time. In pedagogical practice, the system uses a Newtonian physics engine to simulate phenomena such as uniform circular motion, in which the student enters parameters such as mass, radius, and velocity to dynamically visualize how these phenomena occur. Unlike general-purpose software such as Blender (overly complex) or Desmos (limited to 2D), Geopsics focuses on the transition between the algebraic register and spatial visualization, allowing the student to study the concept and to deepen its visualization within a single interface.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Analytic Geometry, Mechanical Physics, Engineering Education, Semiotics, Geopsics, Virtual Environment.
+\end{IEEEkeywords}
+
+% ------------------------------------------------------------
+\section{Introduction}
+
+Engineering education depends heavily on the union between Analytic Geometry and Mechanical Physics. From the very beginning of the course, understanding space, vectors, lines, and planes is essential for students to be able to learn the more complex content. Geometry helps to apply numbers to reality and serves as a basis for subjects such as Calculus, where spatial vision is required to solve problems. At the same time, physics is fundamental because it teaches us how our reality works, explaining the movements, the space, and the time around us.
+
+However, teaching and learning these concepts is a great challenge. When students cannot visualize how these theories work in practice, many conceptual doubts arise. The direct result of this is the high failure rates in the subjects of the first semesters. The researcher Raymond Duval explains this phenomenon very clearly. He states that we cannot touch or feel mathematical objects directly. For this reason, we need visual tools and representations in order to manipulate and understand these ideas, which are purely abstract [1].
+
+In an attempt to solve this visual problem, there are several applications and websites, but many of them fail at the moment of teaching. Some programs are very heavy, full of menus, and difficult to use. This makes students spend more time trying to learn how to operate the tool than studying the subject itself. Other applications are even simpler, but they show simulations trapped in theory, which do not serve to illustrate the dynamics of a specific problem, and which therefore do not help to understand the applicability of the content.
+
+With this issue in mind, we began the development of Geopsics. Geopsics was developed to be an interactive virtual environment that brings geometry and physics together in a single platform. The main differentiator of Geopsics is to offer a space of free creation for the student. In it, the student can change values and see the mathematical and physical results happening on the screen in real time, without needing to download heavy software or use a different application for each subject.
+
+The objective of this article is to present how we created this platform and to show how it works as a practical tool to make the learning of exact sciences much more accessible and clear for students.
+
+% ------------------------------------------------------------
+\section{Theoretical Background}
+
+Undoubtedly, the comprehension of geometric and algebraic phenomena and of the dynamics of physical phenomena depends, in both cases, on the mastery of the mathematical tools that allow modeling in space. Equally undeniable is the fact that any student who enters one of the aforementioned undergraduate programs will face the need for this comprehension not only for those curricular components, but for the entire duration of the program.
+
+The curricular component of Mechanical Physics, grounded in classical Newtonian theory, depends intrinsically on vector and geometric representation. The interaction of quantities such as Gravity, Centripetal Acceleration, and Torque cannot be related only by their scalar values, since their directions and senses determine the causality and the behavior of the whole system.
+
+The curricular component of Analytic Geometry, in turn, aims to provide the algebraic tools for manipulations using matrices, vectors, coordinate systems, and other concepts that will be explored exhaustively by subjects such as Calculus II and Electric Circuits. Such manipulations often go beyond the limitations of the medium in which they are usually transmitted in the classroom, such as blackboards, textbooks, and static projections that are almost always limited to two-dimensional representations.
+
+It is in this convergence of comprehension needs that the development of Geopsics is justified, designed to facilitate strict geometric visualization together with the deterministic laws of Classical Physics. In order to transpose the abstract concepts of Analytic Geometry and the phenomena of Classical Physics to the virtual environment of Geopsics, it was necessary to integrate the fundamental equations that govern the vector and spatial behavior described in [2] and the static and dynamic behavior of the simulated objects described in [3], which are presented in the next section.
+
+% ------------------------------------------------------------
+\section{Equations}
+
+The modeling of linear trajectories and one-dimensional paths in $\mathbb{R}^3$ space is performed by processing their vector equation, expressed by:
+
+\begin{equation}
+(x,y,z) = (x_0,y_0,z_0) + (v_x,v_y,v_z)\,t \tag{1}
+\end{equation}
+
+where $(x_0, y_0, z_0)$ represents the coordinates of a known point on the line and $(v_x, v_y, v_z)$ are the components of the direction vector. As established by Winterle [2], the parameter $t$ may take any real value, determining the translation of the point in three-dimensional space.
+
+\begin{equation}
+\theta = \arccos\!\left(\frac{\vec{u}\cdot\vec{v}}{\lVert \vec{u}\rVert\,\lVert \vec{v}\rVert}\right) \tag{2}
+\end{equation}
+
+Equation (2) defines the angle $\theta$ between two vectors. According to the author, this calculation derives from the dot-product formula, where the angle ``is the real number $\theta$ between $0$ and $\pi$'' [2].
+
+\begin{equation}
+x^2 = 4py \tag{3}
+\end{equation}
+
+where $p$ is the parameter of the parabola that determines the distance from the vertex to the focus and to the directrix. According to Winterle [2], this is the reduced geometric equation for a parabola with vertex at the origin and axis of symmetry coincident with the $y$-axis.
+
+\begin{equation}
+\frac{x^2}{a^2}+\frac{y^2}{b^2} = 1 \tag{4}
+\end{equation}
+
+Equation (4) represents the canonical form of the ellipse. According to the author, the ellipse is the ``locus of the points of a plane whose sum of distances to two fixed points is constant'' [2], with $a$ and $b$ delimiting the semi-axis constraints in the plane.
+
+\begin{equation}
+\frac{x^2}{a^2}-\frac{y^2}{b^2} = 1 \tag{5}
+\end{equation}
+
+where $a$ represents the real semi-axis and $b$ the imaginary semi-axis of the conic. As demonstrated by Winterle [2], this equation models a hyperbola centered at the origin with the real axis contained in the $x$-axis.
+
+\begin{equation}
+ax + by + cz + d = 0 \tag{6}
+\end{equation}
+
+Equation (6) structurally defines the planar surface in space. According to the author, the coefficients form the vector $\vec{n}=(a,b,c)$, which acts as a ``nonzero vector orthogonal to the plane'' [2], a central parameter for the computation of normals in graphics engines.
+
+\begin{equation}
+\frac{x^2}{a^2}+\frac{y^2}{b^2}+\frac{z^2}{c^2} = 1 \tag{7}
+\end{equation}
+
+where $a$, $b$, and $c$ are the measures of the semi-axes of the ellipsoid along the $x$, $y$, and $z$ coordinates. As Winterle [2] points out, if the measures are equal ($a = b = c$), the quadric surface reduces to a perfect spherical surface.
+
+\begin{equation}
+\frac{x^2}{a^2}+\frac{y^2}{b^2}-\frac{z^2}{c^2} = 1 \tag{8}
+\end{equation}
+
+Equation (8) describes the one-sheet hyperboloid. According to Winterle [2], this quadric surface can be generated geometrically from the ``rotation of a hyperbola about its imaginary axis'', mapping elliptical cross-sections along the horizontal cuts.
+
+\begin{equation}
+\frac{x^2}{a^2}-\frac{y^2}{b^2}-\frac{z^2}{c^2} = 1 \tag{9}
+\end{equation}
+
+where the positive sign applied solely to the $x$ term indicates that the real axis of the quadric surface lies on the $x$-axis. According to Winterle [2], this geometric structure is composed of two distinct and disconnected sheets, allowing the student to study empty intervals and inflection points.
+
+The behavior of deflecting antennas and parabolic focal points in three dimensions is explored through the plotting of elliptic paraboloids, given by:
+
+\begin{equation}
+\frac{x^2}{a^2}+\frac{y^2}{b^2} = z \tag{10}
+\end{equation}
+
+where the denominators $a$ and $b$ model the concavity and the opening of the three-dimensional surface. According to Winterle's [2] analysis, the cross-sections of this quadric parallel to the horizontal $xy$-plane form ellipses, whereas the orthogonal vertical cuts form parabolas.
+
+Saddle surfaces and topologies of negative Gaussian curvature are presented interactively to the student through the hyperbolic paraboloid model:
+
+\begin{equation}
+\frac{x^2}{a^2}-\frac{y^2}{b^2} = z \tag{11}
+\end{equation}
+
+Equation (11) models the hyperbolic paraboloid. According to the author, its geometric intersection with planes parallel to the $xy$ coordinate plane results in ``hyperbolas with alternating transverse axes'' [2], providing a rich visual environment for advanced calculus topics.
+
+For the modeling of divergent beams and conical structures at the origin of the coordinate system, the software processes the function:
+
+\begin{equation}
+\frac{x^2}{a^2}+\frac{y^2}{b^2}-\frac{z^2}{c^2} = 0 \tag{12}
+\end{equation}
+
+where the strict equality to zero ensures that the vertex of the spatial cone crosses exactly the origin of the system $(0,0,0)$. As established by Winterle [2], the denominator variables act directly as guidelines of inclination and lateral flattening relative to the $z$-axis.
+
+Complementing the abstract exploration, the software performs real-time routines of metric distance computations. The linear Euclidean separation between two point bodies inserted in the scene is obtained through the equation:
+
+\begin{equation}
+d(p_1,p_2) = \sqrt{(x_2-x_1)^2+(y_2-y_1)^2+(z_2-z_1)^2} \tag{13}
+\end{equation}
+
+where $(x_1, y_1, z_1)$ and $(x_2, y_2, z_2)$ refer to the precise scalar coordinates of points $p_1$ and $p_2$. According to Winterle [2], this metric consolidates the direct and fundamental application of the Pythagorean Theorem extended to three-dimensional space.
+
+The shortest orthogonal distance connecting a geometric point $p$ and a reference line $r$ created by the student is obtained vectorially by:
+
+\begin{equation}
+d(p,r) = \frac{\lvert \vec{v}\times \vec{AP}\rvert}{\lvert \vec{v}\rvert} \tag{14}
+\end{equation}
+
+Equation (14) defines the shortest orthogonal distance from a point to a line. According to the author, the algebraic derivation of this form uses the magnitude of the cross product, consisting of the ``height of the parallelogram determined by the vectors $\vec{v}$ and $\vec{AP}$'' [2], where $\vec{v}$ represents the direction vector of the line under study.
+
+The absolute separation between a point positioned in space and a planar barrier modeled by the system follows the analytical formulation:
+
+\begin{equation}
+d(p_0,\pi) = \frac{\lvert a x_0 + b y_0 + c z_0 + d\rvert}{\sqrt{a^2+b^2+c^2}} \tag{15}
+\end{equation}
+
+where the numerator inserts the spatial coordinates of point $p_0$ into the general equation of the plane $\pi$. As documented by Winterle [2], the term in the denominator corresponds to the magnitude of the normal vector $\vec{n}$ acting as a normalization factor to extract the absolute distance perpendicular to the surface. Concluding the metric-analysis tools of the geometric module, the minimum spatial separation between two non-parallel straight trajectories that do not intersect is given by:
+
+\begin{equation}
+d(r_1,r_2) = \frac{\lvert(\vec{v_1},\vec{v_2},\vec{A_1A_2})\rvert}{\lvert \vec{v_1}\times \vec{v_2}\rvert} \tag{16}
+\end{equation}
+
+Equation (16) measures the distance between two skew lines in vector space. According to the author, the magnitude of the scalar triple product in the numerator ``is the volume of the parallelepiped'' [2] formed by the direction bases of the lines, while the denominator represents the area of its base.
+
+The Mechanical Physics module operates independently, implementing a classical physics engine capable of computing and animating real kinematic and dynamic phenomena based on the Newtonian formalism of Halliday, Resnick, and Walker [3]. For the modeling of continuous rectilinear motion with constant acceleration, the temporal position of a particle is computed through the position-time function:
+
+\begin{equation}
+x(t) = x_0 + v_0 t + \tfrac{1}{2}a t^2 \tag{17}
+\end{equation}
+
+where $x_0$ represents the initial position of the object, $v_0$ its initial linear velocity, and $a$ the constant acceleration imposed along the axis of motion. As established by Halliday [3], this kinematic relation allows the prediction of the locational behavior of point bodies in one-dimensional constant-acceleration simulations.
+
+In scenarios where the body's instantaneous velocity must be determined without prior knowledge of the elapsed time interval, the physics engine computes the spatial displacement using Torricelli's equation:
+
+\begin{equation}
+v^2 = v_0^2 + 2a\,\Delta x \tag{18}
+\end{equation}
+
+Equation (18) establishes the relation between the final linear velocity $v$ and the scalar displacement $\Delta x$. This formula constitutes a fundamental kinematic tool for validating the balance of energy and velocities in uniformly accelerated rectilinear trajectories [3].
+
+For complex ballistic simulations in multiple dimensions, such as oblique launches and free-fall trajectories, the system processes independent parametric equations for each coordinate axis, modeling the vertical behavior through:
+
+\begin{equation}
+y(t) = y_0 + v_{0y}\,t - \tfrac{1}{2}g t^2 \tag{19}
+\end{equation}
+
+where $y_0$ is the initial launch height, $v_{0y}$ is the vertical component of the initial velocity, and $g$ represents the local uniform gravitational acceleration. According to Halliday [3], the orthogonal vector separation ensures the independence of motions, combining a uniform rectilinear motion on the horizontal axis with a uniformly accelerated motion on the vertical axis.
+
+The causal core that changes the inertial state of the objects simulated on the platform is based on the application of external forces and vector fields, computed from the fundamental law of dynamics:
+
+\begin{equation}
+\sum \vec{F} = m\vec{a} \tag{20}
+\end{equation}
+
+Equation (20) expresses Newton's Second Law. According to the authors, the resultant vector force applied to a body is directly proportional to the vector acceleration $\vec{a}$ it acquires, with the constant mass $m$ being the intrinsic property that quantifies the inertia of the simulated object [3].
+
+When simulating contact interactions in three-dimensional environments, such as the sliding of blocks along ramps and textured surfaces, the engine introduces dissipative friction forces expressed by:
+
+\begin{equation}
+f_k = \mu_k F_N \tag{21}
+\end{equation}
+
+where $f_k$ corresponds to the magnitude of the kinetic friction force, $\mu_k$ is the dynamic friction coefficient configured by the user in the interface, and $F_N$ represents the intensity of the normal contact force generated by the compression of the surface. According to Halliday [3], this force acts in the sense strictly opposite to the body's linear sliding velocity vector.
+
+The equation governing the intensity of the centripetal force exerted on the body is given by:
+
+\begin{equation}
+F_c = \frac{m \cdot v^2}{R} \tag{22}
+\end{equation}
+
+In this expression, $m$ represents the mass of the particle, $v$ its instantaneous scalar velocity, and $R$ corresponds to the spatial radius of curvature of the described circular trajectory [3], integrating the geometric constraints of three-dimensional space into the dynamic behavior.
+
+The behavior of collisions and impacts between isolated point bodies is modeled from the law of conservation of linear momentum:
+
+\begin{equation}
+m_1\vec{v}_{1i} + m_2\vec{v}_{2i} = m_1\vec{v}_{1f} + m_2\vec{v}_{2f} \tag{23}
+\end{equation}
+
+where $\vec{v}_{1i}$ and $\vec{v}_{2i}$ correspond to the initial velocity vectors of masses $m_1$ and $m_2$ before the impact, while $\vec{v}_{1f}$ and $\vec{v}_{2f}$ represent their respective final velocity vectors after the collision, ensuring that the total linear momentum of the isolated system remains constant.
+
+Finally, the dissipation of kinetic energy during mechanical collisions --- such as the impact against barriers or the ``bounce'' phenomenon of an object against the flat ground --- is interactively controlled by the student through the coefficient of restitution, expressed by:
+
+\begin{equation}
+v_f = -e \cdot v_i \tag{24}
+\end{equation}
+
+Equation (24) determines the final separation velocity $v_f$ of a body after colliding orthogonally against an ideal reference surface with approach velocity $v_i$. The interface parameter $e$ acts as the coefficient of restitution (varying continuously from $0$ for perfectly inelastic impacts to $1$ for perfectly elastic impacts), allowing the student to visually study the loss of mechanical energy and the consequent reduction in the maximum height reached by the object after multiple bounces.
+
+% ------------------------------------------------------------
+\section{Methodology}
+
+To address these barriers, we created a simulation platform that works as a bridge between basic geometry and the functioning of the laws of physics. Although well-known software such as GeoGebra, Blender, and Desmos already exists, they have limitations when used for this specific purpose: GeoGebra focuses on mathematical rigor; Blender is too complex for basic learning, being aimed at professional animation; and Desmos is mainly limited to 2D graphs.
+
+The approach we decided to follow in order to contribute to the academic field was to develop a free-creation environment that gives the student total freedom to experiment. Instead of being restricted to ready-made models, the student can change the variables and see, in real time, how the laws of physics apply. This allows concepts to be tested in practice, such as performing vector calculations and simulating the launch of objects, making the study much clearer.
+
+The structure of the system is divided into three main parts: the visual part, which uses the Three.js library [4] to draw 3D objects and mathematical shapes in real time; the interface part, made with HTML5 and CSS to ensure that the use of the screen is simple and organized; and the processing core, made in JavaScript together with the Math.js library [4], responsible for performing all the mathematical and physical computations with precision.
+
+To ensure that the software is a positive contribution to the educational field, we tested its operation by using Geopsics on problems solved in reference textbooks, ensuring that the tool is useful in the learning process.
+
+% ------------------------------------------------------------
+\section{Geopsics Interface and Features}
+
+\subsection{User Interface}
+
+Below, we detail the Geopsics interface, which was designed from a cooperative and intuitive perspective, aiming to facilitate interaction with the concepts addressed. The platform presents a home screen divided into two main modules: \textit{Analytic Geometry} and \textit{Physics}.
+
+% --- FIGURE 1: home page. Upload the image in Overleaf and replace the
+%     framebox with: \includegraphics[width=\columnwidth]{home.png}
+\begin{figure}[h]
+\centering
+\framebox[\columnwidth]{\rule{0pt}{4cm}\,Image 1 --- Geopsics home page (upload file)\,}
+\caption{Geopsics home page.}
+\label{fig:home}
+\end{figure}
+
+Within each module, the user has dedicated control panels for experimentation. In the Analytic Geometry module, the tool allows the manipulation of objects through two complementary approaches: direct interaction, in which geometric shapes can be dragged and resized in space, or algebraic modeling, in which the user describes the curves and surfaces through their mathematical equations.
+
+Alternatively, when selecting the Physics module, the environment allows the simulation of objects and rigid solids, exposing their dynamic interactions in a three-dimensional geometric plane. This approach makes it possible to observe physical phenomena in controlled scenarios, as detailed in the situations described in the next section.
+
+% ------------------------------------------------------------
+\section{Discussion}
+
+During the development of the platform, we debated the need, on the part of higher-education students, for the use of similar platforms. This was reinforced by the fact that GeoGebra had around 300{,}000 monthly downloads for some time [5].
+
+% --- FIGURE 2: shape on a plane (Analytic Geometry).
+\begin{figure}[h]
+\centering
+\framebox[\columnwidth]{\rule{0pt}{4cm}\,Image 2 --- shape on a plane (upload file)\,}
+\caption{Shape on a plane in the Analytic Geometry module.}
+\label{fig:shape}
+\end{figure}
+
+To demonstrate the applicability of Geopsics, we considered that, besides developing the interface, we could prove its functionality through problems taken from the books by Paulo Winterle [2] and Halliday [3]. For the tests, we chose to start with analytic geometry.
+
+The first scenario analyzed consists of Exercise 8, item a, from the chapter on quadric surfaces (p. 227) [2], whose statement requires identifying the surface $S$ defined by $y^2 - 4z^2 - 2x = 0$ and graphically determining its intersection with the plane $\pi: x - 2 = 0$.
+
+Traditionally, solving this problem requires the student to perform the algebraic substitution of the plane into the surface equation and to attempt to sketch the resulting conic in a two-dimensional plane (board or paper), omitting the spatial richness of the complete three-dimensional structure. By entering the equations directly into the Geopsics environment, the system performs the processing in real time through the core based on the Math.js library, generating the visualization shown in Figure~\ref{fig:opp}.
+
+% --- FIGURE 3: opposite perspective along x.
+\begin{figure}[h]
+\centering
+\framebox[\columnwidth]{\rule{0pt}{4cm}\,Image 3 --- opposite perspective along x (upload file)\,}
+\caption{Opposite perspective along $x$.}
+\label{fig:opp}
+\end{figure}
+
+As observed in the graphical interface of the tool (Figure~\ref{fig:opp}), the analytic engine of Geopsics delivers to the user not only the volumetric representation of the saddle and of the intersecting plane, but also the step-by-step algebraic breakdown in the side interactions panel. The software performs the parameterized substitution ($x = 2$), resulting in the section equation $y^2 - 4z^2 - 4 = 0$.
+
+The ability to manipulate the plane in real time and observe the change of the resulting hyperbola mitigates the barrier of pure abstraction, allowing the student to consolidate the spatial intuition required for subsequent subjects, such as Differential and Integral Calculus.
+
+% --- FIGURE 4: angled perspective (x, y, z).
+\begin{figure}[h]
+\centering
+\framebox[\columnwidth]{\rule{0pt}{4cm}\,Image 4 --- angled perspective (x, y, z) (upload file)\,}
+\caption{Angled perspective $(x, y, z)$.}
+\label{fig:angle}
+\end{figure}
+
+From the standpoint of Classical Physics, we selected Example 5:11 from the chapter on Applications of Newton's Laws of Sears and Zemansky (Young and Freedman): Physics I, which addresses the fundamental quantities of Uniform Circular Motion (UCM) from a dynamic perspective [6].
+
+The problem proposes the scenario of an object with mass $m = 25$~kg at rest on an ideal ice surface (perfectly smooth and frictionless), attached to a fixed post by a rope of length $R = 5$~m. When set in motion, the object performs a uniform rotational motion, completing five revolutions per minute (5~rpm). The statement requires determining the intensity of the force $F$ exerted by the rope on the object to keep it on this circular trajectory.
+
+In this example, the student must manipulate kinematic equations before being able to run the simulation in Geopsics. The formal algebraic development is structured through the following fundamental steps. First, the period $T$ is determined, representing the time interval required for the body to complete one full circular revolution. Knowing that the object makes 5 turns every 60 seconds:
+
+\begin{equation*}
+T = \frac{60~\text{s}}{5} = 12~\text{s}
+\end{equation*}
+
+From the period, the angular velocity $\omega$ of the system is extracted in radians per second:
+
+\begin{equation*}
+\omega = \frac{2\pi}{T} = \frac{2\pi}{12} = \frac{\pi}{6}~\text{rad/s} \approx 0.524~\text{rad/s}
+\end{equation*}
+
+With the angular velocity established, the magnitude of the tangential linear velocity $v$ of the body at the end of the 5~m radius is computed:
+
+\begin{equation*}
+v = \omega \cdot R = \frac{\pi}{6}\cdot 5 = \frac{5\pi}{6}~\text{m/s} \approx 2.62~\text{m/s}
+\end{equation*}
+
+The continuous variation in the direction of the linear velocity vector generates a radial acceleration directed toward the center of the trajectory, called centripetal acceleration $a_c$, computed by:
+
+\begin{equation*}
+a_c = \frac{v^2}{R} = \frac{\left(\tfrac{5\pi}{6}\right)^2}{5} = \frac{25\pi^2}{36\cdot 5} = \frac{5\pi^2}{36}~\text{m/s}^2 \approx 1.37~\text{m/s}^2
+\end{equation*}
+
+Finally, applying Newton's Second Law to curvilinear motion, the resultant centripetal force $F_c$, which in this scenario is exerted exclusively by the rope tension $F$, is given by the product of the body's mass and its directed acceleration:
+
+\begin{equation*}
+F = F_c = m \cdot a_c = 25 \cdot \left(\frac{5\pi^2}{36}\right) = \frac{125\pi^2}{36}~\text{N} \approx 34.27~\text{N}
+\end{equation*}
+
+In the traditional teaching method, this abstract and purely operational path often prevents the student from understanding the physics underlying the phenomenon, limiting them to the mere substitution of formulas on paper.
+
+Once these data are obtained, however, it is possible to transpose this scenario into Geopsics. The student begins to interact with the Mechanical Physics module by selecting the option ``Centripetal (rotation)''. To feed the graphical and computational engine of the platform, the input parameters are filled in with the data obtained and converted in the analysis: the trajectory radius ($R = 5$~m), the computed centripetal force ($F_c = 34.27$~N), and the object's mass adjusted to the interface scale ($m = 25{,}000$~g).
+
+% --- FIGURE 5: UCM simulation and vector representation of forces.
+\begin{figure}[h]
+\centering
+\framebox[\columnwidth]{\rule{0pt}{4cm}\,Image 5 --- UCM simulation and force vectors (upload file)\,}
+\caption{Simulation of uniform circular motion and vector representation of the forces.}
+\label{fig:ucm}
+\end{figure}
+
+When processing the inserted data, the computational core of Geopsics instantly renders the three-dimensional simulation of the system in motion. The platform dynamically displays the body describing the circular orbit around the post, but the main cognitive gain lies in the plotting and coupling of the vectors in real time: the linear velocity vector ($\vec{v}$) positioned tangentially to the trajectory and the centripetal force vector ($\vec{F}_c$) pointing radially toward the geometric center of the rotation.
+
+From the standpoint of Raymond Duval's registers of semiotic representation, Geopsics acts efficiently by promoting the congruence between the algebraic register (Newton's equations and the parametric constraints provided by the problem statement) and the visual-geometric register (the kinematic behavior and the orientation of the vectors on the screen). This immediate and interactive transition stimulates the student's mechanical intuition, converting abstract concepts of vectors and forces into concrete spatial perceptions and facilitating the process of meaningful learning in the fundamental physics subjects.
+
+% ------------------------------------------------------------
+\section{Conclusion}
+
+Finally, from this article, it can be noted that education requires constant improvements and the development of immersive tools for this theme. Virtual environments and digital interactions are versatile resources applicable to a variety of teaching situations; their adoption is, therefore, essential. The creation of new platforms to improve learning may represent a challenge for both teachers and students; however, this does not reduce its necessity. On the contrary, well-conceived platforms such as the one proposed in this work offer a flexible and effective experimentation environment, capable of making abstract concepts more accessible and of enabling a critical and transparent assessment of student performance.
+
+Our goal in creating this object of essential use, considering its contribution, is to provide an ideal perspective on the importance of the processes; and, as we perceive it, to reflect on the mathematical self-experience and on the difficulties of visualizing certain contexts. This is a crucial aspect of individual --- and collective --- metacognition and meta-process, serving as a parameter to debate the learning process in the field of mathematics.
+
+% ------------------------------------------------------------
+\begin{thebibliography}{9}
+\bibitem{b1} R. DUVAL, ``Registros de representação semiótica e funcionamento cognitivo do pensamento,'' \textit{Revemat: Revista Eletrônica de Educação Matemática}, Florianópolis, vol. 7, no. 2, pp. 266--297, 2012.
+\bibitem{b2} P. WINTERLE, \textit{Vetores e Geometria Analítica}. São Paulo: Makron Books, 2000. ISBN 85-346-1109-2.
+\bibitem{b3} D. HALLIDAY, R. RESNICK, and J. WALKER, \textit{Fundamentos de Física: Mecânica}, vol. 1, 9th ed. Rio de Janeiro: LTC, 2012.
+\bibitem{b4} J. de JONG, ``math.js: an extensive math library for JavaScript and Node.js.'' Available at: \texttt{https://mathjs.org/}. Accessed on: Jun. 27, 2026.
+\bibitem{b5} INSTITUTO GEOGEBRA DE SÃO PAULO, ``Portal do IGISP,'' São Paulo: PUC-SP, 2026. Available at: \texttt{https://www.geogebra.org/}. Accessed on: Jun. 27, 2026.
+\bibitem{b6} H. D. YOUNG and R. A. FREEDMAN, \textit{Física I: mecânica}, 14th ed. São Paulo: Pearson Education do Brasil, 2016.
+\bibitem{b7} REVISTA EDICIC, San Jose (Costa Rica), vol. 2, no. 2, pp. 1--11, 2022. ISSN: 2236-5753.
+\bibitem{b8} T. DREYFUS, ``Advanced Mathematical Thinking Processes,'' in \textit{Advanced Mathematical Thinking}, D. TALL (ed.). Norwell: Kluwer Academic Publishers, 1991, pp. 25--40.
+\end{thebibliography}
+
+\end{document}

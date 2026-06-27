@@ -1,0 +1,265 @@
+% ============================================================
+%  Geopsics — Artigo (template IEEE Conference, A4)
+%  Fonte: conference-template-a4 (2) (1).pdf
+%  Pronto para Overleaf: crie um projeto em branco, cole este
+%  conteudo em "main.tex" e clique em Recompile.
+%  Compilador recomendado no Overleaf: pdfLaTeX.
+%
+%  OBS.: texto e parametros reproduzidos fielmente do rascunho.
+%  Erros/incoerencias do original foram mantidos e apenas
+%  sinalizados em comentarios %  (invisiveis no PDF).
+% ============================================================
+\documentclass[conference,a4paper]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+
+\begin{document}
+
+\title{Ambiente Virtual 3D no Ensino de Exatas: A Interação Computacional de Geometria Analítica e Física através do Software Geopsics}
+
+\author{
+\IEEEauthorblockN{1\textsuperscript{st} Joabe Alves Pereira}
+\IEEEauthorblockA{\textit{GRVA -- Grupo de Realidade Virtual Aumentada} \\
+\textit{Universidade Federal de Uberlandia}\\
+Uberlândia, Minas Gerais \\
+Joabe.pereira@ufu.br}
+\and
+% (original: "2st" — mantido fielmente)
+\IEEEauthorblockN{2\textsuperscript{st} Sandro Campos Martins Filho}
+\IEEEauthorblockA{\textit{GRVA -- Grupo de Realidade Virtual Aumentada} \\
+\textit{Universidade Federal de Uberlandia}\\
+Uberlândia, Minas Gerais \\
+Sandro.filho@ufu.br}
+}
+
+\maketitle
+
+% ------------------------------------------------------------
+\section{Introdução}
+
+A formação nas engenharias depende muito da união entre a Geometria Analítica e a Física Mecânica. Desde o início do curso, entender o espaço, vetores, retas e planos é essencial para que o aluno consiga aprender os conteúdos mais complexos. A geometria ajuda a aplicar os números na realidade e serve de base para matérias como Cálculo, onde a visão espacial é necessária para resolver problemas. Ao mesmo tempo, a física é fundamental porque nos ensina como a nossa realidade funciona, explicando os movimentos, o espaço e o tempo ao nosso redor.
+
+No entanto, ensinar e aprender esses conceitos é um grande desafio. Quando o aluno não consegue visualizar como essas teorias funcionam na prática, surgem muitas dúvidas conceituais. O resultado direto disso são as altas taxas de reprovação nas matérias dos primeiros períodos. O pesquisador Raymond Duval explica esse fenômeno de forma muito clara. Ele afirma que nós não podemos tocar ou sentir os objetos matemáticos diretamente. Por isso, nós precisamos de ferramentas visuais e representações para conseguir manipular e entender essas ideias que são puramente abstratas.
+
+Para tentar resolver esse problema visual, existem vários aplicativos e sites, mas muitos deles falham na hora do ensino. Alguns programas são muito pesados, cheios de menus e difíceis de usar. Isso faz o aluno gastar mais tempo tentando aprender a mexer na ferramenta do que estudando a própria matéria. Outros aplicativos até são mais simples, mas mostram apenas imagens paradas e sem vida, o que não ajuda a entender como a física realmente se comporta no mundo 3D. Essa situação mostra que a tecnologia atual ainda é insuficiente na hora de apoiar o estudante.
+
+Foi para resolver esse problema que desenvolvemos o Geopsics. Ele é um ambiente virtual interativo que junta a geometria e a física em uma única plataforma. O grande diferencial do Geopsics é oferecer um espaço de criação livre para o aluno. Nele, o estudante pode alterar valores e ver os resultados matemáticos e físicos acontecendo na tela em tempo real, sem precisar baixar softwares pesados ou usar um aplicativo diferente para cada matéria. O objetivo deste artigo é apresentar como criamos essa plataforma e mostrar como ela funciona como uma ferramenta prática para tornar o aprendizado de exatas muito mais acessível e claro para os estudantes.
+
+\textit{Keywords} --- Geometria Analítica, Física Mecânica, Engenharia, Semiótica, Geopsics, Ambiente virtual.
+
+% ------------------------------------------------------------
+\section{Fundamentação Teórica}
+
+Indubitavelmente, a compreensão dos fenômenos geométricos e algébricos e da dinâmica dos fenômenos físicos dependem, em ambos os casos, do domínio das ferramentas matemáticas que permitam a modelagem no espaço. Igualmente indubitável é o fato de que qualquer estudante que ingresse em alguns das graduações supracitadas deparar-se-á com a necessidade dessa compressão não apenas para tais componentes curriculares, mas para todo o período da graduação.
+
+O componente curricular de Física Mecânica, fundamentada na teoria clássica newtoniana, depende intrinsicamente da representação vetorial e geométrica. A interação de grandezas como Gravidade, Aceleração Centrípeta e Torque não podem ser relacionadas apenas por seus valores escalares, pois suas direções e sentidos determinam a causalidade e o comportamento de todo o sistema.
+
+O componente curricular Geometria Analítica, por sua vez, tem como o objetivo fornecer as ferramentas algébricas para manipulações usando matrizes, vetores, sistemas de coordenadas e outros conceitos que serão explorados à exaustão por disciplinas como Cálculo II e Circuitos Elétricos. Tais manipulações muitas vezes extrapolam as limitações do meio em que são transmitidas regularmente em sala de aula, como quadros-negros, livros didáticos e projeções estáticas que quase sempre estão limitadas a representações bidimensionais.
+
+Nessa convergência de necessidades de compreensão que se justifica o desenvolvimento do Geopsics, projetado para facilitar a visualização geométrica estrita com as leis determinísticas da Física Clássica. Para transpor os conceitos abstratos da Geometria Analítica e os fenômenos da Física Clássica para o ambiente virtual do Geopsics, foi necessário integrar as equações fundamentais que regem o comportamento vetorial e espacial descrito em [2] e o comportamento estático e dinâmico dos objetos simulados descrito em [3], que estão descritas na próxima seção.
+
+\textit{Keywords} --- Teoria clássica newtoniana, Física clássica, Gravidade, Cálculo II, Circuitos Elétricos, Equações.
+
+% ------------------------------------------------------------
+\section{Equações}
+
+\begin{equation}
+(x,y,z) = (x_0,y_0,z_0) + (v_x,v_y,v_z)\,t \tag{1}
+\end{equation}
+
+Onde $(x_0, y_0, z_0)$ representa as coordenadas de um ponto conhecido da reta e $(v_x, v_y, v_z)$ são as componentes do vetor diretor. Conforme estabelecido por Winterle [7, p. 101], o parâmetro $t$ pode assumir qualquer valor real, determinando a translação do ponto no espaço tridimensional.
+
+\begin{equation}
+\theta = \arccos\!\left(\frac{\vec{u}\cdot\vec{v}}{\lVert \vec{u}\rVert\,\lVert \vec{v}\rVert}\right) \tag{2}
+\end{equation}
+
+A Equação (2) define o ângulo $\theta$ entre dois vetores. Segundo o autor, este cálculo deriva da fórmula do produto escalar, onde o ângulo ``é o número real $\theta$ compreendido entre $0$ e $\pi$'' [7, p. 55].
+
+\begin{equation}
+x^2 = 4py \tag{3}
+\end{equation}
+
+Onde $p$ é o parâmetro da parábola que determina a distância do vértice ao foco e à diretriz. Conforme Winterle [7, p. 235], esta é a equação reduzida geométrica para uma parábola com vértice na origem e eixo de simetria coincidente com o eixo $y$.
+
+\begin{equation}
+\frac{x^2}{a^2}+\frac{y^2}{b^2} = 1 \tag{4}
+\end{equation}
+
+A Equação (4) representa a forma canônica da elipse. Segundo o autor, a elipse é o ``lugar geométrico dos pontos de um plano cuja soma das distâncias a dois pontos fixos é constante'' [7, p. 250], com $a$ e $b$ delimitando as restrições dos semieixos no plano.
+
+\begin{equation}
+\frac{x^2}{a^2}-\frac{y^2}{b^2} = 1 \tag{5}
+\end{equation}
+
+Onde $a$ representa o semieixo real e $b$ o semieixo imaginário da cônica. Conforme demonstrado por Winterle [7, p. 268], esta equação modela uma hipérbole centrada na origem com o eixo real contido no eixo das abscissas.
+
+\begin{equation}
+ax + by + cz + d = 0 \tag{6}
+\end{equation}
+
+A Equação (6) define estruturalmente a superfície plana no espaço. Segundo o autor, os coeficientes formam o vetor $\vec{n}=(a,b,c)$, que atua como um ``vetor não nulo ortogonal ao plano'' [7, p. 131], parâmetro central para o cálculo de normais em motores gráficos.
+
+\begin{equation}
+\frac{x^2}{a^2}+\frac{y^2}{b^2}+\frac{z^2}{c^2} = 1 \tag{7}
+\end{equation}
+
+Onde $a$, $b$ e $c$ são as medidas dos semieixos do elipsoide ao longo das coordenadas $x$, $y$ e $z$. Como aponta Winterle [7, p. 293], caso as medidas sejam iguais ($a = b = c$), a superfície quádrica reduz-se a uma superfície esférica perfeita.
+
+\begin{equation}
+\frac{x^2}{a^2}+\frac{y^2}{b^2}-\frac{z^2}{c^2} = 1 \tag{8}
+\end{equation}
+
+A Equação (8) descreve o hiperboloide de uma folha. Segundo Winterle [7, p. 296], esta superfície quádrica pode ser gerada geometricamente a partir da ``rotação de uma hipérbole em torno de seu eixo imaginário'', mapeando curvas transversais elípticas ao longo dos cortes horizontais.
+
+\begin{equation}
+\frac{x^2}{a^2}-\frac{y^2}{b^2}-\frac{z^2}{c^2} = 1 \tag{9}
+\end{equation}
+
+Onde o sinal positivo aplicado unicamente ao termo de $x$ indica que o eixo real da superfície quádrica está situado sobre o eixo das abscissas. Conforme Winterle [7, p. 298], esta estrutura geométrica é composta por duas folhas distintas e desconexas, permitindo ao aluno estudar intervalos vazios e pontos de inflexão.
+
+O comportamento de antenas defletoras e pontos focais parabólicos em três dimensões é explorado por meio da plotagem de paraboloides elípticos, dados por:
+
+\begin{equation}
+\frac{x^2}{a^2}+\frac{y^2}{b^2} = z \tag{10}
+\end{equation}
+
+Onde os denominadores $a$ e $b$ modelam a concavidade e a abertura da superfície tridimensional. De acordo com a análise de Winterle [7, p. 301], as seções transversais desta quádrica paralelas ao plano horizontal $xy$ formam elipses, ao passo que os cortes verticais ortogonais formam parábolas.
+
+Superfícies de sela e topologias de curvatura gaussiana negativa são apresentadas interativamente ao estudante através do modelo do paraboloide hiperbólico:
+
+\begin{equation}
+\frac{x^2}{a^2}-\frac{y^2}{b^2} = z \tag{11}
+\end{equation}
+
+A Equação (11) modela o paraboloide hiperbólico. Segundo o autor, sua interseção geométrica com planos paralelos ao plano coordenado $xy$ resulta em ``hipérboles com eixos transversos'' alternados [7, p. 303], fornecendo um ambiente visual rico para tópicos avançados de cálculo.
+
+\begin{equation}
+\frac{x^2}{a^2}+\frac{y^2}{b^2}-\frac{z^2}{c^2} = 0 \tag{12}
+\end{equation}
+
+Onde a igualdade estrita a zero garante que o vértice do cone espacial cruze exatamente a origem do sistema $(0,0,0)$. Conforme estabelecido por Winterle [7, p. 305], as variáveis do denominador atuam diretamente como diretrizes de inclinação e achatamento lateral em relação ao eixo $z$.
+
+Complementando a exploração abstrata, o software realiza rotinas em tempo real de cálculos métricos de distância. O afastamento euclidiano linear entre dois corpos pontuais inseridos na cena é obtido através da equação:
+
+\begin{equation}
+d(p_1,p_2) = \sqrt{(x_2-x_1)^2+(y_2-y_1)^2+(z_2-z_1)^2} \tag{13}
+\end{equation}
+
+Onde $(x_1, y_1, z_1)$ e $(x_2, y_2, z_2)$ referem-se às coordenadas escalares precisas dos pontos $p_1$ e $p_2$. Segundo Winterle [7, p. 165], esta métrica consolida a aplicação direta e fundamental do Teorema de Pitágoras estendido ao espaço tridimensional.
+
+A menor distância ortogonal conectando um ponto geométrico $p$ e uma reta de referência $r$ criada pelo discente é obtida de forma vetorial por:
+
+\begin{equation}
+d(p,r) = \frac{\lvert \vec{v}\times \vec{AP}\rvert}{\lvert \vec{v}\rvert} \tag{14}
+\end{equation}
+
+A Equação (14) define a menor distância ortogonal de um ponto a uma reta. Segundo o autor, a dedução algébrica desse formato utiliza o módulo do produto vetorial, consistindo na ``altura do paralelogramo determinado pelos vetores $\vec{v}$ e $\vec{AP}$'' [7, p. 168], onde $\vec{v}$ representa o vetor diretor da reta estudada.
+
+\begin{equation}
+d(p_0,\pi) = \frac{\lvert a x_0 + b y_0 + c z_0 + d\rvert}{\sqrt{a^2+b^2+c^2}} \tag{15}
+\end{equation}
+
+Onde o numerador insere as coordenadas espaciais do ponto $p_0$ na equação geral do plano $\pi$. Conforme documentado por Winterle [7, p. 172], o termo alocado no denominador corresponde ao módulo do vetor normal $\vec{v}$ agindo como fator de normalização para extrair a distância absoluta perpendicular à superfície. Encerrando as ferramentas de análise métrica do módulo geométrico, a separação espacial mínima entre duas trajetórias retilíneas não paralelas que não se cruzam é dada por:
+
+\begin{equation}
+d(r_1,r_2) = \frac{\lvert(\vec{v_1},\vec{v_2},\vec{A_1A_2})\rvert}{\lvert \vec{v_1}\times \vec{v_2}\rvert} \tag{16}
+\end{equation}
+
+A Equação (16) dimensiona a distância entre duas retas reversas no espaço vetorial. Segundo o autor, o módulo do produto misto no numerador ``é o volume do paralelepípedo'' [7, p. 175] formado pelas bases diretoras das retas, enquanto o denominador representa a área de sua base.
+
+% (original: equacao (17) com "a\Delta x" — mantida fielmente como no rascunho)
+\begin{equation}
+x(t) = x_0 + v_0 t + \frac{1}{2}a\Delta x \tag{17}
+\end{equation}
+
+% ------------------------------------------------------------
+\section{Metodologia}
+
+A transição dos livros didáticos tradicionais, que são estáticos, para a dinâmica real do mundo físico exige um esforço mental complexo por parte do aluno. Ao entrar na universidade em cursos de Exatas, principalmente, nas Engenharias, o estudante encontra conteúdos muito mais densos e abstratos. A falta de ferramentas que ajudem a visualizar esses conceitos na prática acaba criando dificuldades de aprendizado. Esse cenário não é um problema de uma única pessoa, mas um desafio coletivo que contribui diretamente para as altas taxas de reprovação e desistência nos primeiros períodos desses cursos.
+
+Para resolver essas barreiras, criamos uma plataforma de simulação que funciona como uma ponte entre a geometria básica e o funcionamento das leis da física. Embora já existam softwares famosos como GeoGebra, Blender e Desmos, eles possuem limitações quando usados para esse fim específico: o GeoGebra foca no rigor matemático, mas não tem um sistema de física interativo integrado; o Blender é complexo demais para o aprendizado básico, sendo voltado para animações profissionais; e o Desmos é limitado principalmente a gráficos 2D.
+
+O grande diferencial da nossa proposta é o ambiente de criação livre, chamado de GeoPsics, que dá ao aluno total liberdade para experimentar. Em vez de apenas olhar para modelos prontos, o estudante pode mudar as variáveis e ver, em tempo real, como as leis da física se aplicam. Isso permite testar conceitos na prática, como realizar cálculos vetoriais e simular o lançamento de objetos, tornando o estudo muito mais claro.
+
+Geopsics foi baseado em metodologias ágeis, focadas em criar um ambiente que une o rigor matemático à prática da física. A plataforma foi construída com tecnologias para a web, o que permite que qualquer aluno a acesse diretamente pelo navegador, sem precisar instalar programas pesados ou ter um computador de última geração. A estrutura do sistema divide-se em três partes principais: a parte visual, que usa a biblioteca Three.js [4] para desenhar objetos 3D e formas matemáticas em tempo real; a parte de interface, feita com HTML5 e CSS para garantir que o uso da tela seja simples e organizado; e o núcleo de processamento, feito em JavaScript junto com a biblioteca Math.js [4], responsável por realizar todos os cálculos matemáticos e físicos com precisão. Essa união permite que o aluno altere números e fórmulas e veja, na hora, como isso muda o comportamento do objeto na tela, transformando o estudo em uma experiência prática e dinâmica. Para garantir que o software ensine corretamente, validamos seu funcionamento comparando os resultados das simulações com problemas resolvidos em livros didáticos de referência, garantindo que a ferramenta seja fiel às leis da física e aos conceitos geométricos necessários para a engenharia.
+
+% ------------------------------------------------------------
+\section{Demonstração}
+
+\begin{center}
+\textbf{Texto Texto Texto Texto}
+\end{center}
+
+% --- FIGURA 1: módulo de Física. Faça upload da imagem no Overleaf e
+%     troque o framebox abaixo por: \includegraphics[width=\columnwidth]{fisica.png}
+\begin{figure}[h]
+\centering
+\framebox[\columnwidth]{\rule{0pt}{4cm}\,Imagem 1 — módulo de Física (enviar arquivo)\,}
+\caption{ }
+\label{fig:fisica}
+\end{figure}
+
+% --- FIGURA 2: módulo de Geometria Analítica.
+\begin{figure}[h]
+\centering
+\framebox[\columnwidth]{\rule{0pt}{4cm}\,Imagem 2 — módulo de Geometria (enviar arquivo)\,}
+\caption{ }
+\label{fig:geometria}
+\end{figure}
+
+% ------------------------------------------------------------
+\section{Discussão}
+
+Considerando o desenvolvimento do site, refletimos criticamente sobre a necessidade, por parte dos discentes de ensino superior, do uso de plataformas similares. Para demonstrar a aplicabilidade da plataforma digital, discutimos que, além de desenvolver a interface, poderíamos comprovar sua funcionalidade por meio de questões extraídas dos livros de Paulo Winterle[2] e de Halliday[3]. Para os testes, optamos por iniciar pelo tema superfícies quádricas; o objetivo era determinar a interseção entre um plano e uma dessas superfícies. As fórmulas utilizadas foram, respectivamente:
+
+A fim de chegar neste resultado.
+
+% --- FIGURA 3: interseção plano x quádrica (paraboloide hiperbólico).
+\begin{figure}[h]
+\centering
+\framebox[\columnwidth]{\rule{0pt}{4cm}\,Imagem 3 — interseção plano x quádrica (enviar arquivo)\,}
+\caption{ }
+\label{fig:secao}
+\end{figure}
+
+Para o próximo teste de visibilidade desta interface
+
+(tem que formatar ainda) (Paulo Winterle exercício 13) pg 157)
+
+Achar a distância do ponto $P$ ao plano $\pi$ nos casos:
+
+13) $P(2,-1,2)$ \quad $\pi:\ 4x - y + z + 5 = 0$
+
+(tem que formatar ainda) (Paulo Winterle exercício 8) a) pg 227)
+
+8) Identificar a superfície e sua interseção com o plano $\pi$ dado. Representar graficamente essa interseção no plano $\pi$.
+
+a) $S:\ y^2 - 4z^2 - 2x = 0$
+
+% ------------------------------------------------------------
+\section{Conclusão}
+
+Por fim, a partir deste artigo, concluímos que a educação requer constantes aprimoramentos e o desenvolvimento de ferramentas imersivas para este tema. Ambientes virtuais e interações digitais são recursos versáteis e aplicáveis a diversas situações de ensino, sua adoção é, portanto, essencial. A criação de novas plataformas para melhorar o aprendizado pode representar um desafio tanto para docentes quanto para discentes; entretanto, isso não reduz a sua necessidade. Pelo contrário, plataformas bem concebidas como a proposta neste trabalho oferecem um ambiente de experimentação flexível e eficaz, capaz de tornar conceitos abstratos mais acessíveis e de possibilitar uma avaliação crítica e transparente do desempenho dos alunos.
+
+\textbf{(AUMENTAR CONCLUSÃO)}
+
+% ------------------------------------------------------------
+\begin{thebibliography}{9}
+\bibitem{b1} Revista EDICIC, San Jose (Costa Rica), v.2, n.2, p.1-11, 2022. ISSN: 2236-5753.
+\bibitem{b2} WINTERLE, Paulo. \textbf{Vetores e Geometria Analítica}. São Paulo: Makron Books, 2000. ISBN 85-346-1109-2.
+\bibitem{b3} JONG, Jos de. \textit{math.js: an extensive math library for JavaScript and Node.js}.
+\bibitem{b4} DUVAL, Raymond. \textbf{Registros de representação semiótica e funcionamento cognitivo do pensamento}. \textit{Revemat: Revista Eletrônica de Educação Matemática}, Florianópolis, v. 7, n. 2, p. 266-297, 2012.
+\bibitem{b5} HALLIDAY, David; RESNICK, Robert; WALKER, Jearl. Fundamentos de Física: Mecânica. v. 1. 9. ed. Rio de Janeiro: LTC, 2012.
+\end{thebibliography}
+
+\begin{center}
+\textbf{(ADICIONAR REFERENCIAS)}
+\end{center}
+
+\end{document}
