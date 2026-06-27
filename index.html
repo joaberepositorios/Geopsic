@@ -3,35 +3,189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Geopsic — Ferramentas</title>
+<title>Geopsics — Ambiente Virtual de Exatas</title>
 <style>
-  :root { --acc:#5784b4; --acc2:#5784b4; --card:#1c222b; }
-  * { box-sizing:border-box; }
-  body { margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
-         font-family:system-ui,'Segoe UI',Roboto,sans-serif; background:#15191f; color:#dde2ea; padding:24px; }
-  h1 { font-size:26px; margin:0 0 4px; } .sub { color:#8a93a2; margin:0 0 28px; text-align:center; }
-  .cards { display:grid; grid-template-columns:1fr 1fr; gap:18px; width:100%; max-width:680px; }
-  @media (max-width:560px){ .cards{ grid-template-columns:1fr; } }
-  .card { background:var(--card); border:1px solid #2b3340; border-radius:18px; padding:30px 22px; text-decoration:none; color:inherit; text-align:center; transition:transform .12s, border-color .12s; }
-  .card:hover { transform:translateY(-4px); border-color:var(--acc); }
-  .card h2 { margin:12px 0 6px; font-size:21px; }
-  .card.g h2 { color:var(--acc); } .card.f h2 { color:var(--acc2); }
-  .card p { margin:0; font-size:13px; color:#8a93a2; }
-  .foot { margin-top:26px; color:#8a93a2; font-size:12px; text-align:center; }
+  :root{
+    --bg:#0a0e17; --bg2:#0e1424;
+    --g:#5b9cff;            /* geometria */
+    --p:#3ddc97;            /* física */
+    --txt:#eaf0fb; --muted:#93a1bd; --card:#121829; --line:#23304d;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ height:100%; }
+  body{
+    min-height:100vh; font-family:'Inter',system-ui,'Segoe UI',Roboto,sans-serif;
+    color:var(--txt); background:var(--bg); overflow-x:hidden;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:32px 20px; position:relative;
+  }
+  /* fundo animado */
+  #bg{ position:fixed; inset:0; z-index:0; display:block; }
+  .glow{ position:fixed; z-index:0; width:60vmax; height:60vmax; border-radius:50%; filter:blur(90px);
+         opacity:.25; pointer-events:none; }
+  .glow.a{ background:var(--g); top:-20vmax; left:-10vmax; animation:float1 18s ease-in-out infinite; }
+  .glow.b{ background:var(--p); bottom:-22vmax; right:-12vmax; animation:float2 22s ease-in-out infinite; }
+  @keyframes float1{ 50%{ transform:translate(8vmax,6vmax) scale(1.15);} }
+  @keyframes float2{ 50%{ transform:translate(-7vmax,-5vmax) scale(1.1);} }
+
+  .wrap{ position:relative; z-index:1; width:100%; max-width:760px; text-align:center; }
+
+  .brand{ display:inline-flex; align-items:center; gap:14px; margin-bottom:6px;
+          opacity:0; animation:dropIn .8s cubic-bezier(.2,.8,.2,1) .05s forwards; }
+  .logo{ width:46px; height:46px; }
+  .logo .ring{ transform-origin:24px 24px; animation:spin 14s linear infinite; }
+  h1{ font-size:clamp(34px,7vw,58px); font-weight:800; letter-spacing:.5px; line-height:1;
+      background:linear-gradient(100deg,var(--g),#a9c6ff 40%,var(--p)); -webkit-background-clip:text;
+      background-clip:text; color:transparent; }
+  .sub{ color:var(--muted); margin:14px 0 34px; font-size:clamp(14px,2.2vw,17px);
+        opacity:0; animation:fadeUp .8s ease .25s forwards; }
+
+  .cards{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:600px){ .cards{ grid-template-columns:1fr; } }
+
+  .card{ position:relative; text-align:left; background:var(--card); border:1px solid var(--line);
+         border-radius:20px; padding:26px 24px 22px; text-decoration:none; color:inherit; overflow:hidden;
+         opacity:0; transform:translateY(18px); animation:fadeUp .7s cubic-bezier(.2,.8,.2,1) forwards;
+         transition:transform .25s, border-color .25s, box-shadow .25s; }
+  .card:nth-child(1){ animation-delay:.40s; }
+  .card:nth-child(2){ animation-delay:.55s; }
+  .card::before{ content:""; position:absolute; inset:0; border-radius:20px; padding:1px;
+     background:linear-gradient(130deg,transparent,var(--ac),transparent); opacity:0; transition:opacity .3s;
+     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+     -webkit-mask-composite:xor; mask-composite:exclude; }
+  .card:hover{ transform:translateY(-8px); border-color:transparent;
+     box-shadow:0 18px 50px -18px var(--ac); }
+  .card:hover::before{ opacity:.9; }
+  .card.g{ --ac:var(--g); } .card.f{ --ac:var(--p); }
+
+  .ic{ width:54px; height:54px; border-radius:14px; display:grid; place-items:center; margin-bottom:16px;
+       background:color-mix(in srgb, var(--ac) 16%, transparent); border:1px solid color-mix(in srgb, var(--ac) 35%, transparent);
+       transition:transform .35s; }
+  .card:hover .ic{ transform:scale(1.08) rotate(-4deg); }
+  .ic svg{ width:30px; height:30px; stroke:var(--ac); }
+  .card h2{ font-size:20px; margin-bottom:6px; }
+  .card p{ color:var(--muted); font-size:13.5px; line-height:1.5; min-height:58px; }
+
+  .btn{ margin-top:16px; display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:14px;
+        color:#06121f; padding:11px 18px; border-radius:11px; position:relative; overflow:hidden;
+        background:var(--ac); box-shadow:0 8px 22px -10px var(--ac); transition:gap .2s, filter .2s; }
+  .btn .ar{ transition:transform .25s; }
+  .card:hover .btn{ filter:brightness(1.08); gap:12px; }
+  .card:hover .btn .ar{ transform:translateX(3px); }
+  .btn::after{ content:""; position:absolute; top:0; left:-120%; width:60%; height:100%;
+     background:linear-gradient(110deg,transparent,rgba(255,255,255,.55),transparent); transform:skewX(-20deg); }
+  .card:hover .btn::after{ animation:shine .9s ease; }
+
+  .foot{ margin-top:30px; opacity:0; animation:fadeUp .8s ease .8s forwards; }
+  .ar-link{ display:inline-flex; align-items:center; gap:8px; color:var(--muted); text-decoration:none;
+            font-size:13px; border:1px solid var(--line); border-radius:999px; padding:8px 16px;
+            transition:color .2s, border-color .2s, transform .2s; }
+  .ar-link:hover{ color:var(--txt); border-color:var(--g); transform:translateY(-2px); }
+
+  @keyframes spin{ to{ transform:rotate(360deg);} }
+  @keyframes dropIn{ from{ opacity:0; transform:translateY(-16px);} to{ opacity:1; transform:none;} }
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(18px);} to{ opacity:1; transform:none;} }
+  @keyframes shine{ to{ left:140%;} }
+  @media (prefers-reduced-motion:reduce){
+    *{ animation:none !important; }
+    .card,.brand,.sub,.foot{ opacity:1 !important; transform:none !important; }
+  }
 </style>
 </head>
 <body>
-  <h1>Geopsic</h1>
-  <p class="sub">Escolha a ferramenta.</p>
+<canvas id="bg"></canvas>
+<div class="glow a"></div>
+<div class="glow b"></div>
+
+<div class="wrap">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 48 48" fill="none" stroke="#a9c6ff" stroke-width="2.2" stroke-linecap="round">
+      <circle class="ring" cx="24" cy="24" r="18" stroke="#5b9cff" stroke-dasharray="6 7" opacity=".8"/>
+      <path d="M24 8v32M8 24h32" stroke="#3ddc97" opacity=".55"/>
+      <circle cx="24" cy="24" r="3.4" fill="#a9c6ff" stroke="none"/>
+    </svg>
+    <h1>Geopsics</h1>
+  </div>
+  <p class="sub">Ambiente virtual 3D para estudar Geometria Analítica e Física Mecânica interagindo em tempo real.</p>
+
   <div class="cards">
     <a class="card g" href="geometria.html">
+      <div class="ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M4 7l8-4 8 4v10l-8 4-8-4z"/><path d="M4 7l8 4 8-4M12 11v10"/>
+        </svg>
+      </div>
       <h2>Geometria Analítica</h2>
-      <p>Pontos, vetores, retas, planos, cônicas e quádricas.<br>Propriedades e interações (distâncias, ângulos).</p>
+      <p>Pontos, vetores, retas, planos, cônicas e quádricas. Propriedades e interações (distâncias, ângulos, interseções).</p>
+      <span class="btn">Abrir <span class="ar">→</span></span>
     </a>
+
     <a class="card f" href="fisica.html?modo=3d">
+      <div class="ic">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+          <circle cx="12" cy="12" r="2.6"/><ellipse cx="12" cy="12" rx="10" ry="4.3"/>
+          <ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(60 12 12)"/>
+          <ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(120 12 12)"/>
+        </svg>
+      </div>
       <h2>Física</h2>
-      <p>Corpos com massa e Leis de Newton.<br>Gravidade, atrito, colisões e vetores de força.</p>
+      <p>Corpos com massa e Leis de Newton. Gravidade, atrito, colisões, pêndulo, plano inclinado e vetores de força.</p>
+      <span class="btn">Abrir <span class="ar">→</span></span>
     </a>
   </div>
+
+  <div class="foot">
+    <a class="ar-link" href="ar.html">◎ Modo AR — projétil sobre marcador (câmera)</a>
+  </div>
+</div>
+
+<script>
+const c = document.getElementById('bg'), x = c.getContext('2d');
+let W, H, pts, mx = -999, my = -999;
+const COLOR_LINE = '120,160,255', COLOR_DOT = '160,195,255';
+function resize(){ W = c.width = innerWidth; H = c.height = innerHeight; init(); }
+function init(){
+  const n = Math.min(95, Math.floor(W * H / 15000));
+  pts = [];
+  for (let i = 0; i < n; i++) pts.push({
+    x: Math.random()*W, y: Math.random()*H,
+    vx: (Math.random()-.5)*.35, vy: (Math.random()-.5)*.35
+  });
+}
+function tick(){
+  x.clearRect(0,0,W,H);
+  for (const p of pts){ p.x += p.vx; p.y += p.vy;
+    if (p.x < 0 || p.x > W) p.vx *= -1;
+    if (p.y < 0 || p.y > H) p.vy *= -1; }
+  // arestas entre pontos próximos
+  for (let i = 0; i < pts.length; i++){
+    for (let j = i+1; j < pts.length; j++){
+      const a = pts[i], b = pts[j], d = Math.hypot(a.x-b.x, a.y-b.y);
+      if (d < 135){
+        x.strokeStyle = 'rgba('+COLOR_LINE+','+(1-d/135)*.16+')';
+        x.lineWidth = 1; x.beginPath(); x.moveTo(a.x,a.y); x.lineTo(b.x,b.y); x.stroke();
+      }
+    }
+  }
+  // interação com o mouse (vetores do cursor aos pontos próximos)
+  for (const p of pts){
+    const d = Math.hypot(p.x-mx, p.y-my);
+    if (d < 170){
+      x.strokeStyle = 'rgba(61,220,151,'+(1-d/170)*.5+')';
+      x.lineWidth = 1.1; x.beginPath(); x.moveTo(p.x,p.y); x.lineTo(mx,my); x.stroke();
+    }
+  }
+  // vértices
+  for (const p of pts){
+    x.fillStyle = 'rgba('+COLOR_DOT+',.75)';
+    x.beginPath(); x.arc(p.x, p.y, 1.7, 0, 7); x.fill();
+  }
+  requestAnimationFrame(tick);
+}
+addEventListener('resize', resize);
+addEventListener('pointermove', e => { mx = e.clientX; my = e.clientY; });
+addEventListener('pointerleave', () => { mx = my = -999; });
+resize(); tick();
+</script>
 </body>
 </html>
