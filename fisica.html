@@ -282,7 +282,7 @@ function label(text, color='#ffffff'){
 }
 function longAxis(dir, color, name, labelAt){
   const g=new THREE.Group(); const d=dir.clone().normalize();
-  const geo=new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-1e6), d.clone().multiplyScalar(1e6)]);
+  const geo=new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-1000), d.clone().multiplyScalar(1000)]);
   g.add(new THREE.Line(geo, new THREE.LineBasicMaterial({color})));
   const lb=label(name,'#'+color.toString(16).padStart(6,'0')); lb.position.copy(d.clone().multiplyScalar(labelAt)); g.add(lb);
   return g;
@@ -296,7 +296,7 @@ function gradeInfinita(xy){
   const mat=new THREE.ShaderMaterial({ uniforms:{ uCam:{value:new THREE.Vector3()}, uSize:{value:1.0}, uFade:{value:120.0},
     uMinor:{value:new THREE.Color(0x6a80a8)}, uMajor:{value:new THREE.Color(0xa8c8f5)} },
     vertexShader:gridVert, fragmentShader:gridFrag, transparent:true, depthWrite:false, side:THREE.DoubleSide, extensions:{derivatives:true} });
-  const m=new THREE.Mesh(new THREE.PlaneGeometry(4e6,4e6), mat); m.renderOrder=-1; if(!xy) m.rotation.x=-Math.PI/2;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000), mat); m.renderOrder=-1; if(!xy) m.rotation.x=-Math.PI/2;
   return { mesh:m, mat };
 }
 
@@ -320,23 +320,9 @@ if (modo === '2d') {
   controls=new OrbitControls(camera, renderer.domElement); controls.enableDamping=true; controls.target.set(0,2,0);
 }
 
-// ---- escala adaptativa (leve): grade igual à antiga no zoom normal, escala em HUD ----
-let scaleTick=null, frameCena=null;
+// ---- enquadramento automático (grade volta a ser a original; sem custo por frame) ----
+let frameCena=null;
 function setupScale(){
-  let lastMajor=-1;
-  const hud=document.createElement('div'); hud.id='gridInfo';
-  hud.style.cssText='position:absolute;left:14px;bottom:12px;z-index:10;font:12px ui-monospace,Consolas,monospace;color:#9fb0c4;background:#1c222b;border:1px solid #2b3340;border-radius:8px;padding:5px 9px;pointer-events:none';
-  document.body.appendChild(hud);
-  const nice=x=>{ if(!(x>0)) return 1; const e=Math.floor(Math.log10(x)),p=Math.pow(10,e),m=x/p; return (m<1.5?1:m<3.5?2:m<7.5?5:10)*p; };
-  const fmtM=v=>{ const a=Math.abs(v); if(a<1e-9) return '0'; let s; if(a>=1e6) s=(v/1e6).toFixed((a%1e6)?1:0)+'M'; else if(a>=1e3) s=(v/1e3).toFixed((a%1e3)?1:0)+'k'; else s=String(+v.toFixed(2)); return s+' m'; };
-  const viewDist=()=> camera.isOrthographicCamera ? (camera.top-camera.bottom)/Math.max(1e-3,camera.zoom) : camera.position.distanceTo(controls.target);
-  scaleTick=()=>{ const dist=Math.max(1e-3,viewDist()), major=nice(dist/3);   // /3 => no zoom normal: célula 1, linha forte 10 (como antes)
-    if(major===lastMajor) return;                                            // só atualiza quando a escala muda (sem custo por frame)
-    lastMajor=major;
-    gridMat.uniforms.uSize.value=major/10; gridMat.uniforms.uFade.value=dist*4+major;
-    if(!camera.isOrthographicCamera){ camera.far=Math.max(8000,dist*100); camera.near=Math.max(0.05,dist*1e-4); camera.updateProjectionMatrix(); }
-    hud.textContent='grade: célula '+fmtM(major/10)+'  ·  linha forte '+fmtM(major);
-  };
   frameCena=()=>{ const arr=getModelos?getModelos():[]; if(!arr.length) return; const box=new THREE.Box3();
     arr.forEach(m=>{ box.expandByObject(m); box.expandByPoint(new THREE.Vector3(m.position.x,0,m.position.z)); });
     if(box.isEmpty()) return; const c=box.getCenter(new THREE.Vector3()), sz=box.getSize(new THREE.Vector3()), r=Math.max(sz.length()/2,1);
@@ -939,7 +925,7 @@ function animate(){ requestAnimationFrame(animate); controls.update();
   if(fisicaTick) fisicaTick();
   if(sitTick) sitTick();
   gridMat.uniforms.uCam.value.copy(camera.position);
-  if(scaleTick) scaleTick();
+  if(camera.isOrthographicCamera) gridMat.uniforms.uFade.value = 14/camera.zoom*1.7 + 8.0;
   renderer.render(scene, camera); }
 animate();
 </script>

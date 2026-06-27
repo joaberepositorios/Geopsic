@@ -112,15 +112,15 @@ const camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,0.1,8000); ca
 const controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.target.set(0,0,1);
 
 function label(text,color='#fff'){ const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle=color;x.font='bold 80px sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText(text,64,64);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),depthTest:false}));s.scale.set(0.8,0.8,0.8);return s; }
-function axis(dir,color,name){ const g=new THREE.Group();const d=dir.clone().normalize();g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-1e6),d.clone().multiplyScalar(1e6)]),new THREE.LineBasicMaterial({color})));const l=label(name,'#'+color.toString(16).padStart(6,'0'));l.position.copy(d.clone().multiplyScalar(6));g.add(l);return g; }
+function axis(dir,color,name){ const g=new THREE.Group();const d=dir.clone().normalize();g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([d.clone().multiplyScalar(-1000),d.clone().multiplyScalar(1000)]),new THREE.LineBasicMaterial({color})));const l=label(name,'#'+color.toString(16).padStart(6,'0'));l.position.copy(d.clone().multiplyScalar(6));g.add(l);return g; }
 scene.add(axis(V(1,0,0),0xf87171,'X')); scene.add(axis(V(0,1,0),0x34d399,'Y')); scene.add(axis(V(0,0,1),0x60a5fa,'Z'));
 // grade
 const gv=`varying vec2 vC;varying vec3 vW;void main(){vC=position.xy;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`;
-const gf=`precision highp float;varying vec2 vC;varying vec3 vW;uniform vec3 uCam;uniform float uF;uniform float uSize;uniform vec3 uMi;uniform vec3 uMa;
+const gf=`precision highp float;varying vec2 vC;varying vec3 vW;uniform vec3 uCam;uniform float uF;uniform vec3 uMi;uniform vec3 uMa;
  float gr(vec2 c,float s){vec2 a=c/s;vec2 g=abs(fract(a-.5)-.5)/fwidth(a);return 1.-min(min(g.x,g.y),1.);}
- void main(){float mi=gr(vC,uSize);float ma=gr(vC,uSize*10.);float d=distance(vW,uCam);float f=1.-smoothstep(uF*.35,uF,d);vec3 col=mix(uMi,uMa,ma);float a=max(max(mi*.9,ma),.07)*f;if(a<.004)discard;gl_FragColor=vec4(col,a);}`;
-const gridMat=new THREE.ShaderMaterial({uniforms:{uCam:{value:new THREE.Vector3()},uF:{value:120},uSize:{value:1.0},uMi:{value:new THREE.Color(0x6a80a8)},uMa:{value:new THREE.Color(0xa8c8f5)}},vertexShader:gv,fragmentShader:gf,transparent:true,depthWrite:false,side:THREE.DoubleSide,extensions:{derivatives:true}});
-const gridMesh=new THREE.Mesh(new THREE.PlaneGeometry(4e6,4e6),gridMat); gridMesh.renderOrder=-1; scene.add(gridMesh); // Z para cima: grade no plano XY (z=0)
+ void main(){float mi=gr(vC,1.);float ma=gr(vC,10.);float d=distance(vW,uCam);float f=1.-smoothstep(uF*.35,uF,d);vec3 col=mix(uMi,uMa,ma);float a=max(max(mi*.9,ma),.07)*f;if(a<.004)discard;gl_FragColor=vec4(col,a);}`;
+const gridMat=new THREE.ShaderMaterial({uniforms:{uCam:{value:new THREE.Vector3()},uF:{value:120},uMi:{value:new THREE.Color(0x6a80a8)},uMa:{value:new THREE.Color(0xa8c8f5)}},vertexShader:gv,fragmentShader:gf,transparent:true,depthWrite:false,side:THREE.DoubleSide,extensions:{derivatives:true}});
+const gridMesh=new THREE.Mesh(new THREE.PlaneGeometry(4000,4000),gridMat); gridMesh.renderOrder=-1; scene.add(gridMesh); // Z para cima: grade no plano XY (z=0)
 
 // ---- marching (cônicas 2D / quádricas 3D) ----
 function marchSquares(F,R,N){ const co=i=>-R+2*R*i/N,S=N+1,g=new Float64Array(S*S),id=(i,j)=>i+S*j;
@@ -563,21 +563,8 @@ function load(){ let a=[]; try{ a=JSON.parse(localStorage.getItem(KEY)||'[]'); }
 load();
 
 // ---- escala adaptativa: grade dinâmica, rótulos numéricos (k/M) e enquadramento ----
-let scaleTick=null, frameCena=null;
+let frameCena=null;
 function setupScale(){
-  let lastMajor=-1;
-  const hud=document.createElement('div'); hud.id='gridInfo';
-  hud.style.cssText='position:absolute;left:14px;bottom:12px;z-index:10;font:12px ui-monospace,Consolas,monospace;color:#9fb0c4;background:#1c222b;border:1px solid #2b3340;border-radius:8px;padding:5px 9px;pointer-events:none';
-  document.body.appendChild(hud);
-  const nice=x=>{ if(!(x>0)) return 1; const e=Math.floor(Math.log10(x)),p=Math.pow(10,e),m=x/p; return (m<1.5?1:m<3.5?2:m<7.5?5:10)*p; };
-  const fmtN=v=>{ const a=Math.abs(v); if(a<1e-9) return '0'; if(a>=1e6) return (v/1e6).toFixed((a%1e6)?1:0)+'M'; if(a>=1e3) return (v/1e3).toFixed((a%1e3)?1:0)+'k'; return String(+v.toFixed(2)); };
-  scaleTick=()=>{ const dist=Math.max(1e-3,camera.position.distanceTo(controls.target)), major=nice(dist/3);  // /3 => zoom normal: célula 1, linha forte 10 (como antes)
-    if(major===lastMajor) return;                                          // sem custo por frame
-    lastMajor=major;
-    gridMat.uniforms.uSize.value=major/10; gridMat.uniforms.uF.value=dist*4+major;
-    camera.far=Math.max(8000,dist*100); camera.near=Math.max(0.05,dist*1e-4); camera.updateProjectionMatrix();
-    hud.textContent='grade: célula '+fmtN(major/10)+'  ·  linha forte '+fmtN(major);
-  };
   frameCena=()=>{ const box=new THREE.Box3(); let any=false;
     elements.forEach(el=>{ const g=el.geo; if(!g) return; any=true;
       if(g.kind==='ponto') box.expandByPoint(g.pt);
@@ -596,7 +583,7 @@ setupScale();
 $('fitBtn').onclick=e=>{ e.preventDefault(); if(frameCena) frameCena(); };
 
 addEventListener('resize',()=>{ camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth,innerHeight); });
-function animate(){ requestAnimationFrame(animate); controls.update(); positionPopup(); gridMat.uniforms.uCam.value.copy(camera.position); if(scaleTick) scaleTick(); renderer.render(scene,camera); }
+function animate(){ requestAnimationFrame(animate); controls.update(); positionPopup(); gridMat.uniforms.uCam.value.copy(camera.position); renderer.render(scene,camera); }
 animate();
 </script>
 </body>
