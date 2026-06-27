@@ -6,96 +6,69 @@
 <title>Geopsics — Ambiente Virtual de Exatas</title>
 <style>
   :root{
-    --bg:#0a0e17; --bg2:#0e1424;
-    --g:#5b9cff;            /* geometria */
-    --p:#3ddc97;            /* física */
-    --txt:#eaf0fb; --muted:#93a1bd; --card:#121829; --line:#23304d;
+    --bg:#0b1018;
+    --g:#5b9cff;
+    --p:#3ddc97;
+    --txt:#eaf0fb; --muted:#93a1bd; --card:#141b29; --line:#26324c;
   }
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ height:100%; }
   body{
     min-height:100vh; font-family:'Inter',system-ui,'Segoe UI',Roboto,sans-serif;
     color:var(--txt); background:var(--bg); overflow-x:hidden;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:32px 20px; position:relative;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 20px;
   }
-  /* fundo animado */
   #bg{ position:fixed; inset:0; z-index:0; display:block; }
-  .glow{ position:fixed; z-index:0; width:60vmax; height:60vmax; border-radius:50%; filter:blur(90px);
-         opacity:.25; pointer-events:none; }
-  .glow.a{ background:var(--g); top:-20vmax; left:-10vmax; animation:float1 18s ease-in-out infinite; }
-  .glow.b{ background:var(--p); bottom:-22vmax; right:-12vmax; animation:float2 22s ease-in-out infinite; }
-  @keyframes float1{ 50%{ transform:translate(8vmax,6vmax) scale(1.15);} }
-  @keyframes float2{ 50%{ transform:translate(-7vmax,-5vmax) scale(1.1);} }
 
-  .wrap{ position:relative; z-index:1; width:100%; max-width:760px; text-align:center; }
+  .wrap{ position:relative; z-index:1; width:100%; max-width:740px; text-align:center; }
 
-  .brand{ display:inline-flex; align-items:center; gap:14px; margin-bottom:6px;
-          opacity:0; animation:dropIn .8s cubic-bezier(.2,.8,.2,1) .05s forwards; }
-  .logo{ width:46px; height:46px; }
-  .logo .ring{ transform-origin:24px 24px; animation:spin 14s linear infinite; }
-  h1{ font-size:clamp(34px,7vw,58px); font-weight:800; letter-spacing:.5px; line-height:1;
-      background:linear-gradient(100deg,var(--g),#a9c6ff 40%,var(--p)); -webkit-background-clip:text;
-      background-clip:text; color:transparent; }
-  .sub{ color:var(--muted); margin:14px 0 34px; font-size:clamp(14px,2.2vw,17px);
-        opacity:0; animation:fadeUp .8s ease .25s forwards; }
+  .brand{ display:inline-flex; align-items:center; gap:14px; margin-bottom:8px; }
+  .logo{ width:44px; height:44px; }
+  .logo .ring{ transform-origin:24px 24px; animation:spin 16s linear infinite; }
+  h1{ font-size:54px; font-weight:800; letter-spacing:1px; color:#fff; }
+  @media (max-width:560px){ h1{ font-size:38px; } }
+  .sub{ color:var(--muted); margin:14px 0 36px; font-size:16px; line-height:1.5; }
 
   .cards{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
   @media (max-width:600px){ .cards{ grid-template-columns:1fr; } }
 
-  .card{ position:relative; text-align:left; background:var(--card); border:1px solid var(--line);
-         border-radius:20px; padding:26px 24px 22px; text-decoration:none; color:inherit; overflow:hidden;
-         opacity:0; transform:translateY(18px); animation:fadeUp .7s cubic-bezier(.2,.8,.2,1) forwards;
-         transition:transform .25s, border-color .25s, box-shadow .25s; }
-  .card:nth-child(1){ animation-delay:.40s; }
-  .card:nth-child(2){ animation-delay:.55s; }
-  .card::before{ content:""; position:absolute; inset:0; border-radius:20px; padding:1px;
-     background:linear-gradient(130deg,transparent,var(--ac),transparent); opacity:0; transition:opacity .3s;
-     -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-     -webkit-mask-composite:xor; mask-composite:exclude; }
-  .card:hover{ transform:translateY(-8px); border-color:transparent;
-     box-shadow:0 18px 50px -18px var(--ac); }
-  .card:hover::before{ opacity:.9; }
-  .card.g{ --ac:var(--g); } .card.f{ --ac:var(--p); }
+  .card{ text-align:left; background:var(--card); border:1px solid var(--line); border-radius:14px;
+         padding:24px 22px 20px; text-decoration:none; color:inherit;
+         transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+  .card:hover{ transform:translateY(-5px); box-shadow:0 14px 34px rgba(0,0,0,.45); }
+  .card.g:hover{ border-color:var(--g); }
+  .card.f:hover{ border-color:var(--p); }
 
-  .ic{ width:54px; height:54px; border-radius:14px; display:grid; place-items:center; margin-bottom:16px;
-       background:color-mix(in srgb, var(--ac) 16%, transparent); border:1px solid color-mix(in srgb, var(--ac) 35%, transparent);
-       transition:transform .35s; }
-  .card:hover .ic{ transform:scale(1.08) rotate(-4deg); }
-  .ic svg{ width:30px; height:30px; stroke:var(--ac); }
+  .ic{ width:52px; height:52px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+       margin-bottom:16px; transition:transform .2s ease; }
+  .card.g .ic{ background:rgba(91,156,255,.12); border:1px solid rgba(91,156,255,.32); }
+  .card.f .ic{ background:rgba(61,220,151,.12); border:1px solid rgba(61,220,151,.32); }
+  .card:hover .ic{ transform:scale(1.06); }
+  .card.g .ic svg{ stroke:var(--g); } .card.f .ic svg{ stroke:var(--p); }
+  .ic svg{ width:28px; height:28px; }
+
   .card h2{ font-size:20px; margin-bottom:6px; }
   .card p{ color:var(--muted); font-size:13.5px; line-height:1.5; min-height:58px; }
 
   .btn{ margin-top:16px; display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:14px;
-        color:#06121f; padding:11px 18px; border-radius:11px; position:relative; overflow:hidden;
-        background:var(--ac); box-shadow:0 8px 22px -10px var(--ac); transition:gap .2s, filter .2s; }
-  .btn .ar{ transition:transform .25s; }
-  .card:hover .btn{ filter:brightness(1.08); gap:12px; }
+        padding:11px 18px; border-radius:10px; transition:gap .2s ease, filter .2s ease; }
+  .card.g .btn{ background:var(--g); color:#07101f; }
+  .card.f .btn{ background:var(--p); color:#062417; }
+  .btn .ar{ transition:transform .2s ease; }
+  .card:hover .btn{ filter:brightness(1.07); gap:11px; }
   .card:hover .btn .ar{ transform:translateX(3px); }
-  .btn::after{ content:""; position:absolute; top:0; left:-120%; width:60%; height:100%;
-     background:linear-gradient(110deg,transparent,rgba(255,255,255,.55),transparent); transform:skewX(-20deg); }
-  .card:hover .btn::after{ animation:shine .9s ease; }
 
-  .foot{ margin-top:30px; opacity:0; animation:fadeUp .8s ease .8s forwards; }
+  .foot{ margin-top:30px; }
   .ar-link{ display:inline-flex; align-items:center; gap:8px; color:var(--muted); text-decoration:none;
             font-size:13px; border:1px solid var(--line); border-radius:999px; padding:8px 16px;
-            transition:color .2s, border-color .2s, transform .2s; }
-  .ar-link:hover{ color:var(--txt); border-color:var(--g); transform:translateY(-2px); }
+            transition:color .2s ease, border-color .2s ease; }
+  .ar-link:hover{ color:var(--txt); border-color:var(--g); }
 
-  @keyframes spin{ to{ transform:rotate(360deg);} }
-  @keyframes dropIn{ from{ opacity:0; transform:translateY(-16px);} to{ opacity:1; transform:none;} }
-  @keyframes fadeUp{ from{ opacity:0; transform:translateY(18px);} to{ opacity:1; transform:none;} }
-  @keyframes shine{ to{ left:140%;} }
-  @media (prefers-reduced-motion:reduce){
-    *{ animation:none !important; }
-    .card,.brand,.sub,.foot{ opacity:1 !important; transform:none !important; }
-  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
 </style>
 </head>
 <body>
 <canvas id="bg"></canvas>
-<div class="glow a"></div>
-<div class="glow b"></div>
 
 <div class="wrap">
   <div class="brand">
@@ -117,7 +90,7 @@
       </div>
       <h2>Geometria Analítica</h2>
       <p>Pontos, vetores, retas, planos, cônicas e quádricas. Propriedades e interações (distâncias, ângulos, interseções).</p>
-      <span class="btn">Abrir <span class="ar">→</span></span>
+      <span class="btn">Abrir <span class="ar">&rarr;</span></span>
     </a>
 
     <a class="card f" href="fisica.html?modo=3d">
@@ -130,19 +103,18 @@
       </div>
       <h2>Física</h2>
       <p>Corpos com massa e Leis de Newton. Gravidade, atrito, colisões, pêndulo, plano inclinado e vetores de força.</p>
-      <span class="btn">Abrir <span class="ar">→</span></span>
+      <span class="btn">Abrir <span class="ar">&rarr;</span></span>
     </a>
   </div>
 
   <div class="foot">
-    <a class="ar-link" href="ar.html">◎ Modo AR — projétil sobre marcador (câmera)</a>
+    <a class="ar-link" href="ar.html">Modo AR — projétil sobre marcador (câmera)</a>
   </div>
 </div>
 
 <script>
 const c = document.getElementById('bg'), x = c.getContext('2d');
 let W, H, pts, mx = -999, my = -999;
-const COLOR_LINE = '120,160,255', COLOR_DOT = '160,195,255';
 function resize(){ W = c.width = innerWidth; H = c.height = innerHeight; init(); }
 function init(){
   const n = Math.min(95, Math.floor(W * H / 15000));
@@ -157,17 +129,15 @@ function tick(){
   for (const p of pts){ p.x += p.vx; p.y += p.vy;
     if (p.x < 0 || p.x > W) p.vx *= -1;
     if (p.y < 0 || p.y > H) p.vy *= -1; }
-  // arestas entre pontos próximos
   for (let i = 0; i < pts.length; i++){
     for (let j = i+1; j < pts.length; j++){
       const a = pts[i], b = pts[j], d = Math.hypot(a.x-b.x, a.y-b.y);
       if (d < 135){
-        x.strokeStyle = 'rgba('+COLOR_LINE+','+(1-d/135)*.16+')';
+        x.strokeStyle = 'rgba(120,160,255,'+(1-d/135)*.16+')';
         x.lineWidth = 1; x.beginPath(); x.moveTo(a.x,a.y); x.lineTo(b.x,b.y); x.stroke();
       }
     }
   }
-  // interação com o mouse (vetores do cursor aos pontos próximos)
   for (const p of pts){
     const d = Math.hypot(p.x-mx, p.y-my);
     if (d < 170){
@@ -175,9 +145,8 @@ function tick(){
       x.lineWidth = 1.1; x.beginPath(); x.moveTo(p.x,p.y); x.lineTo(mx,my); x.stroke();
     }
   }
-  // vértices
   for (const p of pts){
-    x.fillStyle = 'rgba('+COLOR_DOT+',.75)';
+    x.fillStyle = 'rgba(160,195,255,.75)';
     x.beginPath(); x.arc(p.x, p.y, 1.7, 0, 7); x.fill();
   }
   requestAnimationFrame(tick);
