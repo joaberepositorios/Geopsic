@@ -577,7 +577,7 @@ function setupScale(){
     box.expandByPoint(V(0,0,0));
     const c=box.getCenter(new THREE.Vector3()), sz=box.getSize(new THREE.Vector3()), r=Math.max(sz.length()/2,1);
     controls.target.copy(c); const fov=camera.fov*Math.PI/180, d=r/Math.sin(fov/2)*1.3, dir=new THREE.Vector3(0.6,-0.68,0.45).normalize();
-    camera.position.copy(c).addScaledVector(dir,d); camera.near=Math.max(0.05,d*1e-4); camera.far=Math.max(8000,d*100); camera.updateProjectionMatrix(); controls.update(); };
+    camera.position.copy(c).addScaledVector(dir,d); camera.near=Math.max(0.1,(d-r)*0.4); camera.far=(d+r)*4+50; camera.updateProjectionMatrix(); controls.update(); };
 }
 setupScale();
 $('fitBtn').onclick=e=>{ e.preventDefault(); if(frameCena) frameCena(); };
